@@ -1,3 +1,5 @@
+//app/layout.tsx
+
 import "./globals.css";
 import Providers from "./providers";
 
@@ -7,8 +9,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="zh-Hant">
-      <body>
+    <html lang="zh-Hant" suppressHydrationWarning>
+      <body suppressHydrationWarning>
         <Providers>{children}</Providers>
       </body>
     </html>
