@@ -132,3 +132,28 @@ export function useCreateProject() {
   };
 }
 
+export function useCancelProject() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
+    hash,
+  });
+
+  const cancel = (projectId: bigint) => {
+    writeContract({
+      address: CONTRACT_ADDRESS,
+      abi: CONTRACT_ABI,
+      functionName: "cancelProject",
+      args: [projectId],
+    });
+  };
+
+  return {
+    cancel,
+    isPending,
+    isConfirming,
+    isSuccess,
+    error,
+    hash,
+  };
+}
+
