@@ -1,0 +1,335 @@
+// app/project/[id]/page.tsx
+"use client";
+
+import { useParams, useRouter } from "next/navigation";
+import { useAccount } from "wagmi";
+import { formatEther, parseEther } from "viem";
+import { useState } from "react";
+import Navbar from "@/components/Navbar";
+import {
+  useProjectCore,
+  useAllInvestments,
+  useFundProject,
+} from "@/hooks/useContract";
+
+export default function ProjectDetailPage() {
+  const router = useRouter();
+  const params = useParams();
+  const projectId = params?.id ? BigInt(params.id as string) : undefined;
+  const { address } = useAccount();
+
+  const [showInputModal, setShowInputModal] = useState(false);
+  const [showTxModal, setShowTxModal] = useState(false);
+  const [fundAmount, setFundAmount] = useState("");
+  const [txHash, setTxHash] = useState<string | null>(null);
+
+  const {
+    data: projectCore,
+    isLoading: coreLoading,
+    refetch: refetchCore,
+  } = useProjectCore(projectId);
+
+  const { data: investments, refetch: refetchInvestments } =
+    useAllInvestments(projectId);
+
+  const { fund, isPending, isConfirming, isSuccess, error } = useFundProject();
+
+  if (!projectId) return <div>Invalid ProjectID</div>;
+  if (coreLoading || !projectCore) return <div>Loading...</div>;
+
+  const [creator, name, description, softCapWei, totalFunded, bond, state] =
+    projectCore;
+
+  const remaining =
+    softCapWei > totalFunded ? softCapWei - totalFunded : BigInt(0);
+
+  const formatEth = (amount: bigint | string) =>
+    parseFloat(typeof amount === "bigint" ? formatEther(amount) : amount)
+      .toFixed(8)
+      .replace(/\.?0+$/, "");
+
+  const handleFundClick = () => {
+    setFundAmount("");
+    setShowInputModal(true);
+    setShowTxModal(false);
+  };
+
+  const handleCloseTxModal = () => {
+    setShowTxModal(false);
+    setTxHash(null);
+    if (isSuccess) {
+      refetchCore?.();
+      refetchInvestments?.();
+    }
+  };
+
+  const handleFund = async () => {
+    if (!fundAmount || !projectId) return;
+    try {
+      const amount = parseEther(fundAmount);
+      if (amount <= 0) {
+        alert("Value should be greater than 0");
+        return;
+      }
+      setShowInputModal(false);
+      setShowTxModal(true);
+      setTxHash(null);
+      await fund(projectId, amount, {
+        onTransaction: (hash) => setTxHash(hash),
+      });
+    } catch (err: any) {
+      alert(err?.message || "ERROR");
+    }
+  };
+
+  const baseButtonClass =
+    "px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow transform hover:scale-105 cursor-pointer";
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      <Navbar />
+
+      {showInputModal && (
+        <div
+          className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm bg-black/20"
+          onClick={() => setShowInputModal(false)}
+        >
+          <div
+            className="bg-white dark:bg-gray-800 rounded-lg p-8 max-w-md w-full mx-4 shadow-xl transform transition-all duration-300 scale-90 opacity-0 animate-fadeIn relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-semibold mb-4">Invest (ETH)</h3>
+
+            <div className="relative mb-6">
+              <input
+                type="number"
+                min={0}
+                step="0.0001"
+                max={formatEth(remaining)}
+                value={fundAmount}
+                onChange={(e) => setFundAmount(e.target.value)}
+                placeholder={`MAX: ${formatEth(remaining)} ETH`}
+                className="w-full px-4 py-2 pr-16 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                type="button"
+                onClick={() => setFundAmount(formatEth(remaining))}
+                disabled={remaining === BigInt(0)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-blue-600 dark:text-blue-400 font-medium hover:underline disabled:opacity-50"
+              >
+                Max
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={handleFund}
+                className={`${baseButtonClass} bg-blue-600 hover:bg-blue-700 text-white w-full`}
+              >
+                Fund
+              </button>
+              <button
+                onClick={() => setShowInputModal(false)}
+                className={`${baseButtonClass} bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white w-full`}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showTxModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm bg-black/20">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-8 max-w-md w-full mx-4 shadow-xl">
+            {isPending && (
+              <div className="text-center">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                  Submitting...
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Please confirm
+                </p>
+              </div>
+            )}
+            {isConfirming && !isPending && (
+              <div className="text-center">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                  Pending...
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  Submitted
+                </p>
+                {txHash && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 font-mono break-all">
+                    {txHash.slice(0, 10)}...{txHash.slice(-8)}
+                  </p>
+                )}
+              </div>
+            )}
+            {isSuccess && (
+              <div className="text-center">
+                <div className="inline-block w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mb-4">
+                  <svg
+                    className="w-6 h-6 text-green-600 dark:text-green-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-green-600 dark:text-green-400 mb-2">
+                  Success！
+                </h3>
+                <button
+                  onClick={handleCloseTxModal}
+                  className={`${baseButtonClass} bg-green-600 hover:bg-green-700 text-white`}
+                >
+                  OK
+                </button>
+              </div>
+            )}
+            {error && (
+              <div className="text-center">
+                <h3 className="text-xl font-semibold text-red-600 dark:text-red-400 mb-2">
+                  Error
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  Please try again
+                </p>
+                <button
+                  onClick={handleCloseTxModal}
+                  className={`${baseButtonClass} bg-red-600 hover:bg-red-700 text-white`}
+                >
+                  OK
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
+        <div className="flex items-center justify-between mb-6">
+          <button
+            onClick={() => router.back()}
+            className="px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer"
+          >
+            ← Back
+          </button>
+
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white text-center flex-1">
+            {name}
+          </h1>
+          <button
+            onClick={handleFundClick}
+            className={`${baseButtonClass} bg-blue-600 hover:bg-blue-700 text-white`}
+          >
+            Fund
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 break-words">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
+              About this project
+            </h2>
+            <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap mb-4">
+              {description}
+            </p>
+
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
+              Creator
+            </h2>
+            <p className="text-gray-700 dark:text-gray-300 font-mono break-all">
+              {creator}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 flex flex-col items-center justify-center text-center">
+              <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                Target
+              </div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white leading-tight">
+                {formatEth(softCapWei)}
+                <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mt-1 break-words">
+                  ETH
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 flex flex-col items-center justify-center text-center">
+              <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                Total Funded
+              </div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white leading-tight">
+                {formatEth(totalFunded)}
+                <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mt-1 break-words">
+                  ETH
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 flex flex-col items-center justify-center text-center">
+              <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                Remaining
+              </div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white leading-tight">
+                {formatEth(remaining)}
+                <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mt-1 break-words">
+                  ETH
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {investments && investments[0]?.length > 0 && (
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+              Investors
+            </h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-gray-50 dark:bg-gray-700">
+                  <tr>
+                    <th className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
+                      Address
+                    </th>
+                    <th className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
+                      Amount
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {investments[0].map((investor, index) => (
+                    <tr
+                      key={investor}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                    >
+                      <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300 font-mono break-all">
+                        {investor}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900 dark:text-white font-semibold">
+                        {formatEth(investments[1][index])} ETH
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
