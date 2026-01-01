@@ -1,7 +1,8 @@
+//app/providers.tsx
 "use client";
 
 import { WagmiProvider, createConfig, http } from "wagmi";
-import { Chain } from "wagmi/chains";
+import { mainnet, sepolia } from "wagmi/chains";
 import {
   RainbowKitProvider,
   getDefaultWallets,
@@ -17,42 +18,17 @@ const queryClient = new QueryClient();
 
 const { wallets } = getDefaultWallets({
   appName: "Milestone Funding",
-  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "",
+  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!,
 });
 
-const chainId = Number(process.env.NEXT_PUBLIC_CHAIN_ID);
-const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL || "";
-
-const customChain: Chain = {
-  id: chainId,
-  name: chainId === 1 ? "Ethereum Mainnet" : chainId === 97 ? "BSC Testnet" : "Custom Chain",
-  network: chainId === 1 ? "homestead" : chainId === 97 ? "bsc-testnet" : "custom",
-  nativeCurrency: {
-    decimals: 18,
-    name: chainId === 97 ? "Binance Coin" : "Ether",
-    symbol: chainId === 97 ? "BNB" : "ETH",
-  },
-  rpcUrls: {
-    default: { http: [rpcUrl] },
-  },
-  blockExplorers: {
-    default: {
-      name: "Explorer",
-      url:
-        chainId === 97
-          ? "https://testnet.bscscan.com"
-          : chainId === 1
-          ? "https://etherscan.io"
-          : "",
-    },
-  },
-  testnet: chainId !== 1,
-};
-
+/**
+ * Wagmi config
+ */
 const config = createConfig({
-  chains: [customChain],
+  chains: [mainnet, sepolia],
   transports: {
-    [customChain.id]: http(),
+    [mainnet.id]: http(), 
+    [sepolia.id]: http(process.env.NEXT_PUBLIC_RPC_URL),
   },
   wallets,
 });
@@ -65,7 +41,7 @@ export default function Providers({
   return (
     <QueryClientProvider client={queryClient}>
       <WagmiProvider config={config}>
-        <RainbowKitProvider chains={[customChain]}>
+        <RainbowKitProvider chains={[mainnet, sepolia]}>
           {children}
         </RainbowKitProvider>
       </WagmiProvider>
