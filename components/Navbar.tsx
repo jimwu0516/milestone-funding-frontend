@@ -37,28 +37,29 @@ export default function Navbar() {
               onMouseEnter={() => setShowClaimMenu(true)}
               onMouseLeave={() => setShowClaimMenu(false)}
             >
-              <button className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white px-3 py-2 text-sm font-medium">
+              <button className="cursor-pointer text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white px-3 py-2 text-sm font-medium">
                 Claim Fund
               </button>
+
               {showClaimMenu && (
                 <div className="absolute top-full mt-1 w-40 bg-white dark:bg-gray-800 shadow-lg rounded-lg z-50">
                   <Link
                     href="/claim/creator"
                     className="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                   >
-                    Creator
+                    I'm Creator
                   </Link>
                   <Link
                     href="/claim/investor"
                     className="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                   >
-                    Investor
+                    I'm Investor
                   </Link>
                   <Link
                     href="/claim/owner"
                     className="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                   >
-                    Owner
+                    I'm Owner
                   </Link>
                 </div>
               )}
