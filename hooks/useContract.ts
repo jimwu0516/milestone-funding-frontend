@@ -1,7 +1,7 @@
 // hooks/useContract.ts
 "use client";
 
-import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { useReadContract, useWriteContract, useWaitForTransactionReceipt, useAccount } from "wagmi";
 import contractABI from "@/contracts/Milestonefunding.json";
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`;
@@ -157,3 +157,86 @@ export function useCancelProject() {
   };
 }
 
+export function useClaimableInvestor() {
+  const { address } = useAccount();
+  return useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: CONTRACT_ABI,
+    functionName: "claimableInvestor",
+    args: address ? [address] : undefined,
+    query: {
+      enabled: !!address,
+    },
+  });
+}
+
+export function useClaimableCreator() {
+  const { address } = useAccount();
+  return useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: CONTRACT_ABI,
+    functionName: "claimableCreator",
+    args: address ? [address] : undefined,
+    query: {
+      enabled: !!address,
+    },
+  });
+}
+
+export function useClaimableOwner() {
+  const { address } = useAccount();
+  return useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: CONTRACT_ABI,
+    functionName: "claimableOwner",
+    args: address ? [address] : undefined,
+    query: {
+      enabled: !!address,
+    },
+  });
+}
+
+export function useClaimInvestor() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+
+  const claim = () => {
+    writeContract({
+      address: CONTRACT_ADDRESS,
+      abi: CONTRACT_ABI,
+      functionName: "claimInvestor",
+    });
+  };
+
+  return { claim, isPending, isConfirming, isSuccess, error, hash };
+}
+
+export function useClaimCreator() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+
+  const claim = () => {
+    writeContract({
+      address: CONTRACT_ADDRESS,
+      abi: CONTRACT_ABI,
+      functionName: "claimCreator",
+    });
+  };
+
+  return { claim, isPending, isConfirming, isSuccess, error, hash };
+}
+
+export function useClaimOwner() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+
+  const claim = () => {
+    writeContract({
+      address: CONTRACT_ADDRESS,
+      abi: CONTRACT_ABI,
+      functionName: "claimOwner",
+    });
+  };
+
+  return { claim, isPending, isConfirming, isSuccess, error, hash };
+}
