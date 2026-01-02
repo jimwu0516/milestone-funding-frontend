@@ -22,7 +22,6 @@ export default function ProjectDetailPage() {
   const [showInputModal, setShowInputModal] = useState(false);
   const [showTxModal, setShowTxModal] = useState(false);
   const [fundAmount, setFundAmount] = useState("");
-  const [txHash, setTxHash] = useState<string | null>(null);
 
   const {
     data: projectCore,
@@ -33,7 +32,8 @@ export default function ProjectDetailPage() {
   const { data: investments, refetch: refetchInvestments } =
     useAllInvestments(projectId);
 
-  const { fund, isPending, isConfirming, isSuccess, error } = useFundProject();
+  const { fund, isPending, isConfirming, isSuccess, error, hash } =
+    useFundProject();
 
   if (!projectId) return <div>Invalid ProjectID</div>;
   if (coreLoading || !projectCore) return <div>Loading...</div>;
@@ -57,7 +57,6 @@ export default function ProjectDetailPage() {
 
   const handleCloseTxModal = () => {
     setShowTxModal(false);
-    setTxHash(null);
     if (isSuccess) {
       refetchCore?.();
       refetchInvestments?.();
@@ -74,10 +73,8 @@ export default function ProjectDetailPage() {
       }
       setShowInputModal(false);
       setShowTxModal(true);
-      setTxHash(null);
-      await fund(projectId, amount, {
-        onTransaction: (hash) => setTxHash(hash),
-      });
+
+      await fund(projectId, amount);
     } catch (err: any) {
       alert(err?.message || "ERROR");
     }
@@ -154,7 +151,7 @@ export default function ProjectDetailPage() {
             ? "confirming"
             : "pending"
         }
-        hash={txHash}
+        hash={hash || null}
         errorMessage={error ? "Please try again" : undefined}
         buttonClass={baseButtonClass}
       />
