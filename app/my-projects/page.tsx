@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { parseEther, formatEther } from "viem";
 import { useQueryClient } from "@tanstack/react-query";
 import Navbar from "@/components/Navbar";
+import TxModal from "@/components/TxModal";
 import { useMyProjects } from "@/hooks/useMyProjects";
 import {
   useProjectCore,
@@ -15,21 +16,16 @@ import {
 
 export default function MyProjectsPage() {
   const { address, isConnected } = useAccount();
-  const { projectIds, isLoading: idsLoading, refetch } = useMyProjects();
+  const { projectIds, isLoading: idsLoading } = useMyProjects();
   const queryClient = useQueryClient();
 
   const [filter, setFilter] = useState<"active" | "inactive">("active");
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
 
-  if (!mounted) {
-    return null;
-  }
-
-  if (!isConnected) {
+  if (!isConnected)
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
         <Navbar />
@@ -40,7 +36,6 @@ export default function MyProjectsPage() {
         </main>
       </div>
     );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
@@ -111,9 +106,6 @@ export default function MyProjectsPage() {
   );
 }
 
-// ======================
-// 創建專案表單（InputModal + TxModal）
-// ======================
 function CreateProjectForm({
   onClose,
   onSuccess,
@@ -158,12 +150,8 @@ function CreateProjectForm({
 
   const handleCloseTxModal = () => {
     setShowTxModal(false);
-
     if (isSuccess) {
-      queryClient.invalidateQueries({
-        queryKey: ["readContract"],
-      });
-
+      queryClient.invalidateQueries({ queryKey: ["readContract"] });
       onSuccess();
     } else {
       onClose();
@@ -175,7 +163,6 @@ function CreateProjectForm({
 
   return (
     <>
-      {/* Input Modal */}
       {showInputModal && (
         <div
           className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm bg-black/20"
@@ -237,94 +224,25 @@ function CreateProjectForm({
         </div>
       )}
 
-      {/* Tx Modal */}
-      {showTxModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm bg-black/20">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-8 max-w-md w-full mx-4 shadow-xl">
-            {isPending && (
-              <div className="text-center">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                  Submitting...
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Please confirm
-                </p>
-              </div>
-            )}
-
-            {isConfirming && !isPending && (
-              <div className="text-center">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                  Pending...
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
-                  Submitted
-                </p>
-                {hash && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400 font-mono break-all">
-                    {hash.slice(0, 10)}...{hash.slice(-8)}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {isSuccess && (
-              <div className="text-center">
-                <div className="inline-block w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mb-4">
-                  <svg
-                    className="w-6 h-6 text-green-600 dark:text-green-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold text-green-600 dark:text-green-400 mb-2">
-                  Success！
-                </h3>
-                <button
-                  onClick={handleCloseTxModal}
-                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg cursor-pointer"
-                >
-                  Ok
-                </button>
-              </div>
-            )}
-
-            {error && (
-              <div className="text-center">
-                <h3 className="text-xl font-semibold text-red-600 dark:text-red-400 mb-2">
-                  Error
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
-                  {"try again"}
-                </p>
-                <button
-                  onClick={handleCloseTxModal}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg cursor-pointer"
-                >
-                  Ok
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      <TxModal
+        isOpen={showTxModal}
+        onClose={handleCloseTxModal}
+        status={
+          error
+            ? "error"
+            : isSuccess
+            ? "success"
+            : isConfirming
+            ? "confirming"
+            : "pending"
+        }
+        hash={hash || null}
+        errorMessage={error ? "try again" : undefined}
+      />
     </>
   );
 }
 
-// ======================
-// Projects Table & Row（保留原本功能）
-// ======================
 function ProjectsTable({
   projectIds,
   userAddress,
@@ -351,7 +269,9 @@ function ProjectsTable({
           <tr className="bg-gray-50 dark:bg-gray-700">
             <th className="px-4 py-2 text-gray-900 dark:text-white">Title</th>
             <th className="px-4 py-2 text-gray-900 dark:text-white">Target</th>
-            <th className="px-4 py-2 text-gray-900 dark:text-white">Total Funded</th>
+            <th className="px-4 py-2 text-gray-900 dark:text-white">
+              Total Funded
+            </th>
             {filter === "active" ? (
               <>
                 <th className="px-4 py-2 text-gray-900 dark:text-white">
@@ -466,7 +386,6 @@ function ProjectRow({
         </td>
         <td className="px-4 py-3 text-gray-900 dark:text-white">
           {formatEth(softCapWei)} ETH
-          
         </td>
         <td className="px-4 py-3 text-gray-900 dark:text-white">
           {formatEth(totalFunded)}ETH
@@ -510,7 +429,6 @@ function ProjectRow({
         )}
       </tr>
 
-      {/* Milestone Modal */}
       {showMilestoneModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm bg-black/20">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-8 max-w-md w-full mx-4 shadow-xl">
@@ -528,84 +446,21 @@ function ProjectRow({
         </div>
       )}
 
-      {/* Cancel Tx Modal */}
-      {showTxModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm bg-black/20">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-8 max-w-md w-full mx-4 shadow-xl text-center">
-            {isPending && (
-              <>
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mb-4"></div>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                  Canceling...
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Please confirm
-                </p>
-              </>
-            )}
-            {isConfirming && !isPending && (
-              <>
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mb-4"></div>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                  Pending...
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
-                  Submitted
-                </p>
-                {hash && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400 font-mono break-all">
-                    {hash.slice(0, 10)}...{hash.slice(-8)}
-                  </p>
-                )}
-              </>
-            )}
-            {isSuccess && (
-              <>
-                <div className="inline-block w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mb-4">
-                  <svg
-                    className="w-6 h-6 text-green-600 dark:text-green-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold text-green-600 dark:text-green-400 mb-2">
-                  Success！
-                </h3>
-                <button
-                  onClick={handleCloseTxModal}
-                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg cursor-pointer"
-                >
-                  Ok
-                </button>
-              </>
-            )}
-            {cancelError && (
-              <>
-                <h3 className="text-xl font-semibold text-red-600 dark:text-red-400 mb-2">
-                  Error
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
-                  {"Try again"}
-                </p>
-                <button
-                  onClick={handleCloseTxModal}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg cursor-pointer"
-                >
-                  Ok
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      )}
+      <TxModal
+        isOpen={showTxModal}
+        onClose={handleCloseTxModal}
+        status={
+          cancelError
+            ? "error"
+            : isSuccess
+            ? "success"
+            : isConfirming
+            ? "confirming"
+            : "pending"
+        }
+        hash={hash || null}
+        errorMessage={cancelError ? "Try again" : undefined}
+      />
     </>
   );
 }
