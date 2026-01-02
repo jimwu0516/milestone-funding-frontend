@@ -6,9 +6,10 @@ import TxModal from "@/components/TxModal";
 import { useState, useEffect } from "react";
 import { formatEther } from "viem";
 import { useClaimableCreator, useClaimCreator } from "@/hooks/useContract";
-import { useQueryClient } from "@tanstack/react-query";
+import { useAccount } from "wagmi";
 
 export default function ClaimCreatorPage() {
+  const { address, isConnected } = useAccount();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
@@ -25,9 +26,7 @@ export default function ClaimCreatorPage() {
 
   const handleCloseTxModal = () => {
     setShowTxModal(false);
-    if (isSuccess) {
-      refetch();
-    }
+    if (isSuccess) refetch();
   };
 
   if (!mounted) return null;
@@ -37,23 +36,64 @@ export default function ClaimCreatorPage() {
       ? parseFloat(formatEther(claimable as bigint)).toFixed(6)
       : "0";
 
+  const isDisabled = isPending || isConfirming || Number(amountEth) === 0;
+
+  if (!isConnected)
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+        <Navbar />
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
+          <div className="text-center text-gray-600 dark:text-gray-400">
+            Please connect your wallet
+          </div>
+        </main>
+      </div>
+    );
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900">
       <Navbar />
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
-        <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">
-          Claim Creator Funds
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400 mb-4">
-          Your claimable amount: <strong>{amountEth} ETH</strong>
-        </p>
-        <button
-          onClick={handleClaim}
-          disabled={isPending || isConfirming || Number(amountEth) === 0}
-          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
-        >
-          {isPending || isConfirming ? "Processing..." : "Claim"}
-        </button>
+
+      <main className="flex items-center justify-center px-4 py-28">
+        <div className="w-full max-w-md rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xl p-8 text-center">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Creator Claim
+          </h1>
+
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+            Withdraw your earned funds
+          </p>
+
+          {/* Amount */}
+          <div className="mt-8">
+            <div className="text-sm uppercase tracking-wide text-gray-500 dark:text-gray-400">
+              Claimable Amount
+            </div>
+            <div className="mt-2 text-4xl font-extrabold text-gray-900 dark:text-white">
+              {amountEth}
+              <span className="ml-2 text-lg font-medium text-gray-500">
+                ETH
+              </span>
+            </div>
+          </div>
+
+          {/* Claim Button */}
+          <button
+            onClick={handleClaim}
+            disabled={isDisabled}
+            className={`
+              mt-10 w-full rounded-xl px-6 py-4 text-lg font-semibold
+              transition-all duration-200
+              ${
+                isDisabled
+                  ? "bg-gray-300 dark:bg-gray-700 text-gray-600 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-500/30 cursor-pointer"
+              }
+            `}
+          >
+            {isDisabled ? "No funds available to claim" : "Claim Funds"}
+          </button>
+        </div>
 
         <TxModal
           isOpen={showTxModal}
@@ -68,7 +108,9 @@ export default function ClaimCreatorPage() {
               : "pending"
           }
           hash={hash || null}
-          errorMessage={error ? "Try again" : undefined}
+          errorMessage={
+            error ? "Transaction failed. Please try again." : undefined
+          }
         />
       </main>
     </div>
