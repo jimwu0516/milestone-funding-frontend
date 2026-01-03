@@ -13,11 +13,13 @@ import {
   useCreateProject,
   useCancelProject,
 } from "@/hooks/useContract";
+import SubmitMilestoneModal from "@/components/SubmitMilestoneModal";
 
 export default function MyProjectsPage() {
   const { address, isConnected } = useAccount();
   const { projectIds, isLoading: idsLoading } = useMyProjects();
   const queryClient = useQueryClient();
+  const [showMilestoneModal, setShowMilestoneModal] = useState(false);
 
   const [filter, setFilter] = useState<"active" | "inactive">("active");
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -419,8 +421,15 @@ function ProjectRow({
                   onClick={() => setShowMilestoneModal(true)}
                   className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm cursor-pointer"
                 >
-                  提交 Milestone
+                  Submit Milestone
                 </button>
+              )}
+
+              {showMilestoneModal && (
+                <SubmitMilestoneModal
+                  projectId={projectId}
+                  onClose={() => setShowMilestoneModal(false)}
+                />
               )}
             </td>
           </>
@@ -428,23 +437,6 @@ function ProjectRow({
           <td className="px-4 py-3 text-gray-900 dark:text-white">{state}</td>
         )}
       </tr>
-
-      {showMilestoneModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm bg-black/20">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-8 max-w-md w-full mx-4 shadow-xl">
-            <h3 className="text-lg font-semibold mb-4">提交 Milestone</h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              這裡可以放里程碑提交表單
-            </p>
-            <button
-              onClick={() => setShowMilestoneModal(false)}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg cursor-pointer"
-            >
-              關閉
-            </button>
-          </div>
-        </div>
-      )}
 
       <TxModal
         isOpen={showTxModal}
