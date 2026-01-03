@@ -240,3 +240,27 @@ export function useClaimOwner() {
 
   return { claim, isPending, isConfirming, isSuccess, error, hash };
 }
+
+export function useSubmitMilestone() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess } =
+    useWaitForTransactionReceipt({ hash });
+
+  const submit = (projectId: bigint, cid: string) => {
+    writeContract({
+      address: CONTRACT_ADDRESS,
+      abi: CONTRACT_ABI,
+      functionName: "submitMilestone",
+      args: [projectId, cid],
+    });
+  };
+
+  return {
+    submit,
+    isPending,
+    isConfirming,
+    isSuccess,
+    error,
+    hash,
+  };
+}
