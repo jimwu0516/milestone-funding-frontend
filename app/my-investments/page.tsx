@@ -121,6 +121,19 @@ function ProjectsTable({
   investments: ReturnType<typeof useMyInvestments>["investments"];
   formatEth: (amount: bigint | string) => string;
 }) {
+  const timeline = [
+    "Funding",
+    "BuildingStage1",
+    "VotingRound1",
+    "FailureRound1",
+    "BuildingStage2",
+    "VotingRound2",
+    "FailureRound2",
+    "BuildingStage3",
+    "VotingRound3",
+    "FailureRound3",
+  ];
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left border-collapse">
@@ -138,28 +151,48 @@ function ProjectsTable({
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-          {investments.map((inv) => (
-            <tr
-              key={inv.projectId.toString()}
-              className="hover:bg-gray-50 dark:hover:bg-gray-700"
-            >
-              <td className="px-4 py-3 text-gray-900 dark:text-white font-medium">
-                {inv.name}
-              </td>
-              <td className="px-4 py-3 text-gray-900 dark:text-white">
-                {formatEth(inv.softCapWei)} ETH
-              </td>
-              <td className="px-4 py-3 text-gray-900 dark:text-white">
-                {formatEth(inv.totalFunded)} ETH
-              </td>
-              <td className="px-4 py-3 text-gray-900 dark:text-white">
-                {formatEth(inv.invested)} ETH
-              </td>
-              <td className="px-4 py-3 text-gray-900 dark:text-white">
-                {inv.state}
-              </td>
-            </tr>
-          ))}
+          {investments.map((inv) => {
+            let progressColor = "bg-blue-600";
+            if (inv.state === "Cancelled") progressColor = "bg-gray-400";
+            else if (inv.state === "Completed") progressColor = "bg-green-600";
+
+            const stageIndex = timeline.indexOf(inv.state);
+            const progressPercent =
+              stageIndex >= 0 ? ((stageIndex + 1) / timeline.length) * 100 : 0;
+
+            return (
+              <tr
+                key={inv.projectId.toString()}
+                className="hover:bg-gray-50 dark:hover:bg-gray-700"
+              >
+                <td className="px-4 py-3 text-gray-900 dark:text-white font-medium">
+                  {inv.name}
+                </td>
+                <td className="px-4 py-3 text-gray-900 dark:text-white">
+                  {formatEth(inv.softCapWei)} ETH
+                </td>
+                <td className="px-4 py-3 text-gray-900 dark:text-white">
+                  {formatEth(inv.totalFunded)} ETH
+                </td>
+                <td className="px-4 py-3 text-gray-900 dark:text-white">
+                  {formatEth(inv.invested)} ETH
+                </td>
+                <td className="px-4 py-3">
+                  <div>
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
+                      <div
+                        className={`${progressColor} h-4 rounded-full transition-all duration-500`}
+                        style={{ width: `${progressPercent}%` }}
+                      ></div>
+                    </div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                      {inv.state}
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

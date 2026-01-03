@@ -163,7 +163,7 @@ function ProjectsTable({
             {filter === "active" ? (
               <>
                 <th className="px-4 py-2 text-gray-900 dark:text-white">
-                  Milestone
+                  State
                 </th>
                 <th className="px-4 py-2 text-gray-900 dark:text-white">
                   Action
@@ -224,6 +224,19 @@ function ProjectRow({
   const [creator, name, , softCapWei, totalFunded, , state] = data;
   if (creator.toLowerCase() !== userAddress.toLowerCase()) return null;
 
+  const allStates = [
+    "Funding",
+    "BuildingStage1",
+    "VotingRound1",
+    "FailureRound1",
+    "BuildingStage2",
+    "VotingRound2",
+    "FailureRound2",
+    "BuildingStage3",
+    "VotingRound3",
+    "FailureRound3",
+  ];
+
   const activeStates = [
     "Funding",
     "BuildingStage1",
@@ -233,12 +246,19 @@ function ProjectRow({
     "BuildingStage3",
     "VotingRound3",
   ];
+
   const isActive = activeStates.includes(state);
   if ((filter === "active" && !isActive) || (filter === "inactive" && isActive))
     return null;
 
+  const stageIndex = allStates.indexOf(state);
   const progressPercent =
-    ((activeStates.indexOf(state) + 1) / activeStates.length) * 100;
+    stageIndex >= 0 ? ((stageIndex + 1) / allStates.length) * 100 : 0;
+
+  let progressColor = "bg-blue-600";
+  if (state === "Cancelled") progressColor = "bg-gray-400";
+  else if (state === "Completed") progressColor = "bg-green-600";
+
   const formatEth = (amount: bigint | string) =>
     parseFloat(typeof amount === "bigint" ? formatEther(amount) : amount)
       .toFixed(8)
@@ -272,50 +292,47 @@ function ProjectRow({
           {formatEth(softCapWei)} ETH
         </td>
         <td className="px-4 py-3 text-gray-900 dark:text-white">
-          {formatEth(totalFunded)}ETH
+          {formatEth(totalFunded)} ETH
         </td>
 
-        {filter === "active" ? (
-          <>
-            <td className="px-4 py-3">
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
-                <div
-                  className="bg-blue-600 h-4 rounded-full"
-                  style={{ width: `${progressPercent}%` }}
-                ></div>
-              </div>
-              <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                {state}
-              </div>
-            </td>
-            <td className="px-4 py-3 flex gap-2">
-              {state === "Funding" && (
-                <button
-                  onClick={handleCancel}
-                  disabled={isPending || isConfirming}
-                  className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm cursor-pointer disabled:opacity-50"
-                >
-                  {isPending || isConfirming ? "Canceling..." : "Cancel"}
-                </button>
-              )}
-              {state.includes("Building") && (
-                <button
-                  onClick={() => setShowMilestoneModal(true)}
-                  className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm cursor-pointer"
-                >
-                  Submit Milestone
-                </button>
-              )}
-              {showMilestoneModal && (
-                <SubmitMilestoneModal
-                  projectId={projectId}
-                  onClose={() => setShowMilestoneModal(false)}
-                />
-              )}
-            </td>
-          </>
-        ) : (
-          <td className="px-4 py-3 text-gray-900 dark:text-white">{state}</td>
+        <td className="px-4 py-3">
+          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
+            <div
+              className={`${progressColor} h-4 rounded-full transition-all duration-500`}
+              style={{ width: `${progressPercent}%` }}
+            ></div>
+          </div>
+          <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+            {state}
+          </div>
+        </td>
+
+        {filter === "active" && (
+          <td className="px-4 py-3 flex gap-2">
+            {state === "Funding" && (
+              <button
+                onClick={handleCancel}
+                disabled={isPending || isConfirming}
+                className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm cursor-pointer disabled:opacity-50"
+              >
+                {isPending || isConfirming ? "Canceling..." : "Cancel"}
+              </button>
+            )}
+            {state.includes("Building") && (
+              <button
+                onClick={() => setShowMilestoneModal(true)}
+                className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm cursor-pointer"
+              >
+                Submit Milestone
+              </button>
+            )}
+            {showMilestoneModal && (
+              <SubmitMilestoneModal
+                projectId={projectId}
+                onClose={() => setShowMilestoneModal(false)}
+              />
+            )}
+          </td>
         )}
       </tr>
 
