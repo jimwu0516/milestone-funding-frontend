@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
+import { formatEther } from "viem";
 import Navbar from "@/components/Navbar";
 import { useMyInvestments } from "@/hooks/useMyInvestments";
 
@@ -49,10 +50,8 @@ export default function MyInvestmentsPage() {
   });
 
   const formatEth = (amount: bigint | string) =>
-    parseFloat(
-      typeof amount === "bigint" ? Number(amount) / 1e18 : Number(amount)
-    )
-      .toFixed(4)
+    parseFloat(typeof amount === "bigint" ? formatEther(amount) : amount)
+      .toFixed(8)
       .replace(/\.?0+$/, "");
 
   return (
