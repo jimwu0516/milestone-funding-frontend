@@ -264,3 +264,33 @@ export function useSubmitMilestone() {
     hash,
   };
 }
+
+
+export function useVote() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+
+  const vote = (projectId: bigint, option: 1 | 2) => {
+    // 1 = Yes, 2 = No
+    writeContract({
+      address: CONTRACT_ADDRESS,
+      abi: contractABI.abi,
+      functionName: "vote",
+      args: [projectId, option],
+    });
+  };
+
+  return { vote, hash, isPending, isConfirming, isSuccess, error };
+}
+
+export function useMyVotes(projectId: bigint | undefined) {
+  const { address } = useAccount();
+
+  return useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: CONTRACT_ABI,
+    functionName: "getMyVotes",
+    args: projectId && address ? [projectId, address] : undefined,
+    query: { enabled: !!projectId && !!address },
+  });
+}

@@ -1,10 +1,13 @@
+// app/my-investments/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import { formatEther } from "viem";
 import Navbar from "@/components/Navbar";
+import VoteModal from "@/components/VoteModal";
 import { useMyInvestments } from "@/hooks/useMyInvestments";
+import { useProjectVoting, useMyVotes } from "@/hooks/useContract";
 
 export default function MyInvestmentsPage() {
   const { isConnected } = useAccount();
@@ -13,6 +16,10 @@ export default function MyInvestmentsPage() {
     "ongoing"
   );
   const [mounted, setMounted] = useState(false);
+
+  const [showVoteModal, setShowVoteModal] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<bigint | null>(null);
+  const [selectedMilestone, setSelectedMilestone] = useState<number>(0);
 
   useEffect(() => setMounted(true), []);
   if (!mounted) return null;
@@ -61,6 +68,7 @@ export default function MyInvestmentsPage() {
         <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">
           My Investments
         </h1>
+
         <FilterTabs filter={filter} setFilter={setFilter} />
 
         {isLoading ? (
@@ -71,11 +79,22 @@ export default function MyInvestmentsPage() {
           <ProjectsTable
             investments={filteredInvestments}
             formatEth={formatEth}
+            setSelectedProject={setSelectedProject}
+            setSelectedMilestone={setSelectedMilestone}
+            setShowVoteModal={setShowVoteModal}
           />
         ) : (
           <div className="text-gray-600 dark:text-gray-400 py-12">
             No investments found.
           </div>
+        )}
+
+        {showVoteModal && selectedProject !== null && (
+          <VoteModal
+            projectId={selectedProject}
+            milestoneIndex={selectedMilestone}
+            onClose={() => setShowVoteModal(false)}
+          />
         )}
       </main>
     </div>
@@ -113,13 +132,18 @@ function FilterTabs({
   );
 }
 
-/* -------------------- Table -------------------- */
 function ProjectsTable({
   investments,
   formatEth,
+  setSelectedProject,
+  setSelectedMilestone,
+  setShowVoteModal,
 }: {
   investments: ReturnType<typeof useMyInvestments>["investments"];
   formatEth: (amount: bigint | string) => string;
+  setSelectedProject: (id: bigint) => void;
+  setSelectedMilestone: (index: number) => void;
+  setShowVoteModal: (v: boolean) => void;
 }) {
   const timeline = [
     "Funding",
@@ -148,53 +172,97 @@ function ProjectsTable({
               My Investment
             </th>
             <th className="px-4 py-2 text-gray-900 dark:text-white">State</th>
+            <th className="px-4 py-2 text-gray-900 dark:text-white">Action</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-          {investments.map((inv) => {
-            let progressColor = "bg-blue-600";
-            if (inv.state === "Cancelled") progressColor = "bg-gray-400";
-            else if (inv.state === "Completed") progressColor = "bg-green-600";
-
-            const stageIndex = timeline.indexOf(inv.state);
-            const progressPercent =
-              stageIndex >= 0 ? ((stageIndex + 1) / timeline.length) * 100 : 0;
-
-            return (
-              <tr
-                key={inv.projectId.toString()}
-                className="hover:bg-gray-50 dark:hover:bg-gray-700"
-              >
-                <td className="px-4 py-3 text-gray-900 dark:text-white font-medium">
-                  {inv.name}
-                </td>
-                <td className="px-4 py-3 text-gray-900 dark:text-white">
-                  {formatEth(inv.softCapWei)} ETH
-                </td>
-                <td className="px-4 py-3 text-gray-900 dark:text-white">
-                  {formatEth(inv.totalFunded)} ETH
-                </td>
-                <td className="px-4 py-3 text-gray-900 dark:text-white">
-                  {formatEth(inv.invested)} ETH
-                </td>
-                <td className="px-4 py-3">
-                  <div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
-                      <div
-                        className={`${progressColor} h-4 rounded-full transition-all duration-500`}
-                        style={{ width: `${progressPercent}%` }}
-                      ></div>
-                    </div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                      {inv.state}
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            );
-          })}
+          {investments.map((inv) => (
+            <InvestmentRow
+              key={inv.projectId.toString()}
+              inv={inv}
+              timeline={timeline}
+              formatEth={formatEth}
+              setSelectedProject={setSelectedProject}
+              setSelectedMilestone={setSelectedMilestone}
+              setShowVoteModal={setShowVoteModal}
+            />
+          ))}
         </tbody>
       </table>
     </div>
+  );
+}
+
+function InvestmentRow({
+  inv,
+  timeline,
+  formatEth,
+  setSelectedProject,
+  setSelectedMilestone,
+  setShowVoteModal,
+}: any) {
+  const { data: myVotes } = useMyVotes(inv.projectId);
+
+  const stageIndex = timeline.indexOf(inv.state);
+  const progressPercent =
+    stageIndex >= 0 ? ((stageIndex + 1) / timeline.length) * 100 : 0;
+
+  let progressColor = "bg-blue-600";
+  if (inv.state === "Cancelled") progressColor = "bg-gray-400";
+  else if (inv.state === "Completed") progressColor = "bg-green-600";
+
+  const milestoneIndex = inv.state.includes("VotingRound")
+    ? Number(inv.state.replace("VotingRound", "")) - 1
+    : null;
+
+  const hasVoted =
+    milestoneIndex !== null && myVotes && myVotes[milestoneIndex] !== 0n;
+
+  return (
+    <tr className="hover:bg-gray-50 dark:hover:bg-gray-700">
+      <td className="px-4 py-3 text-gray-900 dark:text-white font-medium">
+        {inv.name}
+      </td>
+      <td className="px-4 py-3 text-gray-900 dark:text-white">
+        {formatEth(inv.softCapWei)} ETH
+      </td>
+      <td className="px-4 py-3 text-gray-900 dark:text-white">
+        {formatEth(inv.totalFunded)} ETH
+      </td>
+      <td className="px-4 py-3 text-gray-900 dark:text-white">
+        {formatEth(inv.invested)} ETH
+      </td>
+      <td className="px-4 py-3">
+        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
+          <div
+            className={`${progressColor} h-4 rounded-full transition-all duration-500`}
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+        <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+          {inv.state}
+        </div>
+      </td>
+      <td className="px-4 py-3 text-center">
+        {inv.state.includes("VotingRound") ? (
+          hasVoted ? (
+            "-"
+          ) : (
+            <button
+              onClick={() => {
+                setSelectedProject(inv.projectId);
+                setSelectedMilestone(milestoneIndex);
+                setShowVoteModal(true);
+              }}
+              className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm cursor-pointer"
+            >
+              Vote
+            </button>
+          )
+        ) : (
+          "-"
+        )}
+      </td>
+    </tr>
   );
 }
