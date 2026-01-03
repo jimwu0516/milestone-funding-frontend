@@ -5,29 +5,30 @@ import { useAccount } from "wagmi";
 import { useEffect, useState } from "react";
 import { parseEther, formatEther } from "viem";
 import { useQueryClient } from "@tanstack/react-query";
+
 import Navbar from "@/components/Navbar";
 import TxModal from "@/components/TxModal";
+import SubmitMilestoneModal from "@/components/SubmitMilestoneModal";
+import CreateProjectForm from "@/components/CreateProjectForm";
 import { useMyProjects } from "@/hooks/useMyProjects";
 import {
   useProjectCore,
   useCreateProject,
   useCancelProject,
 } from "@/hooks/useContract";
-import SubmitMilestoneModal from "@/components/SubmitMilestoneModal";
 
 export default function MyProjectsPage() {
   const { address, isConnected } = useAccount();
   const { projectIds, isLoading: idsLoading } = useMyProjects();
   const queryClient = useQueryClient();
-  const [showMilestoneModal, setShowMilestoneModal] = useState(false);
-
   const [filter, setFilter] = useState<"active" | "inactive">("active");
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [mounted, setMounted] = useState(false);
+
   useEffect(() => setMounted(true), []);
   if (!mounted) return null;
 
-  if (!isConnected)
+  if (!isConnected) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
         <Navbar />
@@ -38,45 +39,14 @@ export default function MyProjectsPage() {
         </main>
       </div>
     );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <Navbar />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            My Projects
-          </h1>
-          <button
-            onClick={() => setShowCreateForm(true)}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors cursor-pointer"
-          >
-            Create
-          </button>
-        </div>
-
-        <div className="flex border-b border-gray-300 dark:border-gray-700 mb-6">
-          <button
-            onClick={() => setFilter("active")}
-            className={`px-4 py-2 -mb-px font-medium border-b-2 transition-colors cursor-pointer ${
-              filter === "active"
-                ? "border-blue-600 text-blue-600"
-                : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-            }`}
-          >
-            Active
-          </button>
-          <button
-            onClick={() => setFilter("inactive")}
-            className={`px-4 py-2 -mb-px font-medium border-b-2 transition-colors cursor-pointer ${
-              filter === "inactive"
-                ? "border-blue-600 text-blue-600"
-                : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-            }`}
-          >
-            Inactive
-          </button>
-        </div>
+        <Header setShowCreateForm={setShowCreateForm} />
+        <FilterTabs filter={filter} setFilter={setFilter} />
 
         {showCreateForm && (
           <CreateProjectForm
@@ -89,9 +59,7 @@ export default function MyProjectsPage() {
         )}
 
         {idsLoading ? (
-          <div className="flex justify-center items-center py-12 text-gray-600 dark:text-gray-400">
-            Loading...
-          </div>
+          <LoadingState />
         ) : projectIds && projectIds.length > 0 ? (
           <ProjectsTable
             projectIds={projectIds}
@@ -99,151 +67,79 @@ export default function MyProjectsPage() {
             filter={filter}
           />
         ) : (
-          <div className="text-center py-12 text-gray-600 dark:text-gray-400">
-            No projects have been created yet.
-          </div>
+          <EmptyState />
         )}
       </main>
     </div>
   );
 }
 
-function CreateProjectForm({
-  onClose,
-  onSuccess,
+/* -------------------- Components -------------------- */
+
+function Header({
+  setShowCreateForm,
 }: {
-  onClose: () => void;
-  onSuccess: () => void;
+  setShowCreateForm: (v: boolean) => void;
 }) {
-  const { create, isPending, isConfirming, isSuccess, error, hash } =
-    useCreateProject();
-  const queryClient = useQueryClient();
-  const [showInputModal, setShowInputModal] = useState(true);
-  const [showTxModal, setShowTxModal] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    softCapEther: "",
-  });
-
-  const handleCreate = async () => {
-    const { name, description, softCapEther } = formData;
-    if (!name || !description || !softCapEther) {
-      alert("Please fill in all fields.");
-      return;
-    }
-    if (isNaN(Number(softCapEther)) || Number(softCapEther) <= 0) {
-      alert("Please input valid value");
-      return;
-    }
-
-    try {
-      const softCapWei = parseEther(softCapEther);
-      const bond = softCapWei / BigInt(10);
-      setShowInputModal(false);
-      setShowTxModal(true);
-      await create(name, description, softCapWei, bond);
-    } catch (err: any) {
-      alert("Error");
-      setShowInputModal(true);
-      setShowTxModal(false);
-    }
-  };
-
-  const handleCloseTxModal = () => {
-    setShowTxModal(false);
-    if (isSuccess) {
-      queryClient.invalidateQueries({ queryKey: ["readContract"] });
-      onSuccess();
-    } else {
-      onClose();
-    }
-  };
-
-  const baseButtonClass =
-    "px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow transform hover:scale-105 cursor-pointer";
-
   return (
-    <>
-      {showInputModal && (
-        <div
-          className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm bg-black/20"
-          onClick={onClose}
-        >
-          <div
-            className="bg-white dark:bg-gray-800 rounded-lg p-8 max-w-md w-full mx-4 shadow-xl cursor-pointer"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-lg font-semibold mb-4">Create new project</h3>
-
-            <div className="space-y-4">
-              <input
-                type="text"
-                placeholder="name"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <textarea
-                placeholder="describe"
-                rows={4}
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <input
-                type="number"
-                min={0}
-                step={0.0001}
-                placeholder="Target (ETH)"
-                value={formData.softCapEther}
-                onChange={(e) =>
-                  setFormData({ ...formData, softCapEther: e.target.value })
-                }
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div className="flex flex-col gap-3 mt-6">
-              <button
-                onClick={handleCreate}
-                className={`${baseButtonClass} bg-blue-600 hover:bg-blue-700 text-white w-full`}
-              >
-                Submit
-              </button>
-              <button
-                onClick={onClose}
-                className={`${baseButtonClass} bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white w-full`}
-              >
-                cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <TxModal
-        isOpen={showTxModal}
-        onClose={handleCloseTxModal}
-        status={
-          error
-            ? "error"
-            : isSuccess
-            ? "success"
-            : isConfirming
-            ? "confirming"
-            : "pending"
-        }
-        hash={hash || null}
-        errorMessage={error ? "try again" : undefined}
-      />
-    </>
+    <div className="flex justify-between items-center mb-6">
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+        My Projects
+      </h1>
+      <button
+        onClick={() => setShowCreateForm(true)}
+        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors cursor-pointer"
+      >
+        Create
+      </button>
+    </div>
   );
 }
+
+function FilterTabs({
+  filter,
+  setFilter,
+}: {
+  filter: "active" | "inactive";
+  setFilter: (v: "active" | "inactive") => void;
+}) {
+  const tabs: ("active" | "inactive")[] = ["active", "inactive"];
+  return (
+    <div className="flex border-b border-gray-300 dark:border-gray-700 mb-6">
+      {tabs.map((tab) => (
+        <button
+          key={tab}
+          onClick={() => setFilter(tab)}
+          className={`px-4 py-2 -mb-px font-medium border-b-2 transition-colors cursor-pointer ${
+            filter === tab
+              ? "border-blue-600 text-blue-600"
+              : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+          }`}
+        >
+          {tab.charAt(0).toUpperCase() + tab.slice(1)}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function LoadingState() {
+  return (
+    <div className="flex justify-center items-center py-12 text-gray-600 dark:text-gray-400">
+      Loading...
+    </div>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div className="text-center py-12 text-gray-600 dark:text-gray-400">
+      No projects have been created yet.
+    </div>
+  );
+}
+
+/* -------------------- Projects Table -------------------- */
 
 function ProjectsTable({
   projectIds,
@@ -254,16 +150,6 @@ function ProjectsTable({
   userAddress: string;
   filter: "active" | "inactive";
 }) {
-  const activeStates = [
-    "Funding",
-    "BuildingStage1",
-    "VotingRound1",
-    "BuildingStage2",
-    "VotingRound2",
-    "BuildingStage3",
-    "VotingRound3",
-  ];
-
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left border-collapse">
@@ -284,7 +170,7 @@ function ProjectsTable({
                 </th>
               </>
             ) : (
-              <th className="px-4 py-2 text-gray-900 dark:text-white">state</th>
+              <th className="px-4 py-2 text-gray-900 dark:text-white">State</th>
             )}
           </tr>
         </thead>
@@ -321,9 +207,9 @@ function ProjectRow({
     error: cancelError,
     hash,
   } = useCancelProject();
+  const queryClient = useQueryClient();
   const [showMilestoneModal, setShowMilestoneModal] = useState(false);
   const [showTxModal, setShowTxModal] = useState(false);
-  const queryClient = useQueryClient();
 
   if (isLoading)
     return (
@@ -335,8 +221,7 @@ function ProjectRow({
     );
   if (error || !data) return null;
 
-  const [creator, name, description, softCapWei, totalFunded, bond, state] =
-    data;
+  const [creator, name, , softCapWei, totalFunded, , state] = data;
   if (creator.toLowerCase() !== userAddress.toLowerCase()) return null;
 
   const activeStates = [
@@ -348,20 +233,22 @@ function ProjectRow({
     "BuildingStage3",
     "VotingRound3",
   ];
-
   const isActive = activeStates.includes(state);
   if ((filter === "active" && !isActive) || (filter === "inactive" && isActive))
     return null;
 
-  const progressIndex = activeStates.indexOf(state);
-  const progressPercent = ((progressIndex + 1) / activeStates.length) * 100;
+  const progressPercent =
+    ((activeStates.indexOf(state) + 1) / activeStates.length) * 100;
+  const formatEth = (amount: bigint | string) =>
+    parseFloat(typeof amount === "bigint" ? formatEther(amount) : amount)
+      .toFixed(8)
+      .replace(/\.?0+$/, "");
 
   const handleCancel = async () => {
     setShowTxModal(true);
     try {
       await cancel(projectId);
-    } catch (err) {
-      console.error(err);
+    } catch {
       alert("Error");
       setShowTxModal(false);
     }
@@ -374,11 +261,6 @@ function ProjectRow({
       queryClient.invalidateQueries({ queryKey: ["readContract"] });
     }
   };
-
-  const formatEth = (amount: bigint | string) =>
-    parseFloat(typeof amount === "bigint" ? formatEther(amount) : amount)
-      .toFixed(8)
-      .replace(/\.?0+$/, "");
 
   return (
     <>
@@ -424,7 +306,6 @@ function ProjectRow({
                   Submit Milestone
                 </button>
               )}
-
               {showMilestoneModal && (
                 <SubmitMilestoneModal
                   projectId={projectId}
