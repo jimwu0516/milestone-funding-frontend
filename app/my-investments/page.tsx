@@ -12,7 +12,11 @@ import { getProjectProgress } from "@/utils/projectProgress";
 
 export default function MyInvestmentsPage() {
   const { isConnected } = useAccount();
-  const { investments, isLoading } = useMyInvestments();
+  const {
+    investments,
+    isLoading,
+    refetch: refetchInvestments,
+  } = useMyInvestments();
   const [filter, setFilter] = useState<"ongoing" | "voting" | "history">(
     "ongoing"
   );
@@ -92,6 +96,9 @@ export default function MyInvestmentsPage() {
             projectId={selectedProject}
             milestoneIndex={selectedMilestone}
             onClose={() => setShowVoteModal(false)}
+            onSuccess={() => {
+              refetchInvestments();
+            }}
           />
         )}
       </main>
@@ -293,6 +300,10 @@ function InvestmentRow({
                 style={{ width: `${noPercent}%` }}
               />
             )}
+          </div>
+          <div className="mt-1 flex justify-between text-xs">
+            <span className="text-green-600 dark:text-green-400">Yes</span>
+            <span className="text-red-600 dark:text-red-400">No</span>
           </div>
         </td>
       )}

@@ -9,12 +9,14 @@ type VoteModalProps = {
   projectId: bigint;
   milestoneIndex: number; // VotingRound1 => 0, VotingRound2 => 1, VotingRound3 => 2
   onClose: () => void;
+  onSuccess?: () => void;
 };
 
 export default function VoteModal({
   projectId,
   milestoneIndex,
   onClose,
+  onSuccess,
 }: VoteModalProps) {
   const { vote, hash, isPending, isConfirming, isSuccess, error } = useVote();
   const { data: meta, refetch: refetchMeta } = useProjectMeta(projectId);
@@ -69,6 +71,7 @@ export default function VoteModal({
     if (isSuccess) {
       await refetchVoting();
       await refetchMeta();
+      onSuccess?.();
       onClose();
     }
   };

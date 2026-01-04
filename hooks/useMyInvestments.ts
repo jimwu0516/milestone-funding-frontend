@@ -9,7 +9,7 @@ const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string
 export function useMyInvestments() {
   const { address } = useAccount();
 
-  const { data, isLoading } = useReadContract({
+  const { data, isLoading, refetch } = useReadContract({
     address: CONTRACT_ADDRESS,
     abi: contractABI.abi,
     functionName: "getMyInvestedProjects",
@@ -33,5 +33,5 @@ export function useMyInvestments() {
       }))
     : [];
 
-  return { investments, isLoading };
+  return { investments, isLoading, refetch };
 }
