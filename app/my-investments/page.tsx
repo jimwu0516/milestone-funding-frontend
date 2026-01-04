@@ -82,6 +82,7 @@ export default function MyInvestmentsPage() {
             setSelectedProject={setSelectedProject}
             setSelectedMilestone={setSelectedMilestone}
             setShowVoteModal={setShowVoteModal}
+            isVoting={filter === "voting"}
           />
         ) : (
           <div className="text-gray-600 dark:text-gray-400 py-12">
@@ -138,12 +139,14 @@ function ProjectsTable({
   setSelectedProject,
   setSelectedMilestone,
   setShowVoteModal,
+  isVoting,
 }: {
   investments: ReturnType<typeof useMyInvestments>["investments"];
   formatEth: (amount: bigint | string) => string;
   setSelectedProject: (id: bigint) => void;
   setSelectedMilestone: (index: number) => void;
   setShowVoteModal: (v: boolean) => void;
+  isVoting: boolean;
 }) {
   const timeline = [
     "Funding",
@@ -172,6 +175,12 @@ function ProjectsTable({
               My Investment
             </th>
             <th className="px-4 py-2 text-gray-900 dark:text-white">State</th>
+
+            {isVoting && (
+              <th className="px-4 py-2 text-gray-900 dark:text-white">
+                Voting Status
+              </th>
+            )}
             <th className="px-4 py-2 text-gray-900 dark:text-white">Action</th>
           </tr>
         </thead>
@@ -185,6 +194,7 @@ function ProjectsTable({
               setSelectedProject={setSelectedProject}
               setSelectedMilestone={setSelectedMilestone}
               setShowVoteModal={setShowVoteModal}
+              isVoting={isVoting}
             />
           ))}
         </tbody>
@@ -200,8 +210,12 @@ function InvestmentRow({
   setSelectedProject,
   setSelectedMilestone,
   setShowVoteModal,
+  isVoting,
 }: any) {
-  const { data: myVotes } = useMyVotes(inv.projectId);
+  const { data: myVotes, isLoading: myVotesLoading } = useMyVotes(
+    inv.projectId
+  );
+  const { data: votingData } = useProjectVoting(inv.projectId);
 
   const stageIndex = timeline.indexOf(inv.state);
   const progressPercent =
@@ -215,8 +229,27 @@ function InvestmentRow({
     ? Number(inv.state.replace("VotingRound", "")) - 1
     : null;
 
-  const hasVoted =
-    milestoneIndex !== null && myVotes && myVotes[milestoneIndex] !== 0n;
+  let hasVoted = false;
+
+  if (!myVotesLoading && milestoneIndex !== null && myVotes) {
+    const voteRaw = Array.isArray(myVotes)
+      ? myVotes[milestoneIndex]
+      : myVotes[milestoneIndex.toString()];
+    hasVoted = BigInt(voteRaw) !== 0n;
+  }
+
+  const yesWeight =
+    votingData && milestoneIndex !== null ? votingData[2][milestoneIndex] : 0n;
+
+  const noWeight =
+    votingData && milestoneIndex !== null ? votingData[3][milestoneIndex] : 0n;
+
+  const yes = Number(yesWeight);
+  const no = Number(noWeight);
+  const sum = yes + no;
+
+  const yesPercent = sum > 0 ? (yes / sum) * 100 : 0;
+  const noPercent = sum > 0 ? (no / sum) * 100 : 0;
 
   return (
     <tr className="hover:bg-gray-50 dark:hover:bg-gray-700">
@@ -243,6 +276,26 @@ function InvestmentRow({
           {inv.state}
         </div>
       </td>
+
+      {isVoting && (
+        <td className="px-4 py-3">
+          <div className="flex h-4 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+            {yesPercent > 0 && (
+              <div
+                className="bg-green-600 transition-all"
+                style={{ width: `${yesPercent}%` }}
+              />
+            )}
+            {noPercent > 0 && (
+              <div
+                className="bg-red-600 transition-all"
+                style={{ width: `${noPercent}%` }}
+              />
+            )}
+          </div>
+        </td>
+      )}
+
       <td className="px-4 py-3 text-center">
         {inv.state.includes("VotingRound") ? (
           hasVoted ? (
@@ -254,7 +307,7 @@ function InvestmentRow({
                 setSelectedMilestone(milestoneIndex);
                 setShowVoteModal(true);
               }}
-              className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm cursor-pointer"
+              className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm"
             >
               Vote
             </button>
