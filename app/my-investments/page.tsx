@@ -8,6 +8,7 @@ import Navbar from "@/components/Navbar";
 import VoteModal from "@/components/VoteModal";
 import { useMyInvestments } from "@/hooks/useMyInvestments";
 import { useProjectVoting, useMyVotes } from "@/hooks/useContract";
+import { getProjectProgress } from "@/utils/projectProgress";
 
 export default function MyInvestmentsPage() {
   const { isConnected } = useAccount();
@@ -35,26 +36,22 @@ export default function MyInvestmentsPage() {
     );
   }
 
-  const ongoingStates = [
-    "Funding",
-    "BuildingStage1",
-    "BuildingStage2",
-    "BuildingStage3",
-  ];
-  const votingStates = ["VotingRound1", "VotingRound2", "VotingRound3"];
-  const historyStates = [
-    "Cancelled",
-    "Completed",
-    "FailureRound1",
-    "FailureRound2",
-    "FailureRound3",
-  ];
+  // --- Filter definitions ---
+  const FILTER_STATES = {
+    ongoing: ["Funding", "BuildingStage1", "BuildingStage2", "BuildingStage3"],
+    voting: ["VotingRound1", "VotingRound2", "VotingRound3"],
+    history: [
+      "Cancelled",
+      "Completed",
+      "FailureRound1",
+      "FailureRound2",
+      "FailureRound3",
+    ],
+  } as const;
 
-  const filteredInvestments = investments.filter((inv) => {
-    if (filter === "ongoing") return ongoingStates.includes(inv.state);
-    if (filter === "voting") return votingStates.includes(inv.state);
-    return historyStates.includes(inv.state);
-  });
+  const filteredInvestments = investments.filter((inv) =>
+    FILTER_STATES[filter].includes(inv.state)
+  );
 
   const formatEth = (amount: bigint | string) =>
     parseFloat(typeof amount === "bigint" ? formatEther(amount) : amount)
@@ -102,6 +99,7 @@ export default function MyInvestmentsPage() {
   );
 }
 
+// --- Filter tabs component ---
 function FilterTabs({
   filter,
   setFilter,
@@ -133,6 +131,7 @@ function FilterTabs({
   );
 }
 
+// --- Projects Table ---
 function ProjectsTable({
   investments,
   formatEth,
@@ -175,7 +174,6 @@ function ProjectsTable({
               My Investment
             </th>
             <th className="px-4 py-2 text-gray-900 dark:text-white">State</th>
-
             {isVoting && (
               <th className="px-4 py-2 text-gray-900 dark:text-white">
                 Voting Status
@@ -203,6 +201,7 @@ function ProjectsTable({
   );
 }
 
+// --- Investment Row ---
 function InvestmentRow({
   inv,
   timeline,
@@ -212,22 +211,17 @@ function InvestmentRow({
   setShowVoteModal,
   isVoting,
 }: any) {
-  const { address: userAddress, isConnected } = useAccount();
+  const { address: userAddress } = useAccount();
 
   const { data: myVotes, isLoading: myVotesLoading } = useMyVotes(
     inv.projectId,
     userAddress
   );
-
   const { data: votingData } = useProjectVoting(inv.projectId);
 
-  const stageIndex = timeline.indexOf(inv.state);
-  const progressPercent =
-    stageIndex >= 0 ? ((stageIndex + 1) / timeline.length) * 100 : 0;
-
-  let progressColor = "bg-blue-600";
-  if (inv.state === "Cancelled") progressColor = "bg-gray-400";
-  else if (inv.state === "Completed") progressColor = "bg-green-600";
+  const { percent: progressPercent, color: progressColor } = getProjectProgress(
+    inv.state
+  );
 
   const milestoneIndex = inv.state.includes("VotingRound")
     ? Number(inv.state.replace("VotingRound", "")) - 1
@@ -236,12 +230,6 @@ function InvestmentRow({
   let hasVoted = false;
   if (!myVotesLoading && milestoneIndex !== null && Array.isArray(myVotes)) {
     const voteValue = myVotes[milestoneIndex];
-    console.log(
-      "voteValue at milestoneIndex:",
-      voteValue,
-      "type:",
-      typeof voteValue
-    );
     if (voteValue !== undefined && voteValue !== null) {
       let voteBigInt: bigint;
       if (typeof voteValue === "bigint") voteBigInt = voteValue;
@@ -284,6 +272,7 @@ function InvestmentRow({
             style={{ width: `${progressPercent}%` }}
           />
         </div>
+
         <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
           {inv.state}
         </div>

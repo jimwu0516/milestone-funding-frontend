@@ -16,6 +16,7 @@ import {
   useCreateProject,
   useCancelProject,
 } from "@/hooks/useContract";
+import { getProjectProgress } from "@/utils/projectProgress";
 
 export default function MyProjectsPage() {
   const { address, isConnected } = useAccount();
@@ -224,19 +225,6 @@ function ProjectRow({
   const [creator, name, , softCapWei, totalFunded, , state] = data;
   if (creator.toLowerCase() !== userAddress.toLowerCase()) return null;
 
-  const allStates = [
-    "Funding",
-    "BuildingStage1",
-    "VotingRound1",
-    "FailureRound1",
-    "BuildingStage2",
-    "VotingRound2",
-    "FailureRound2",
-    "BuildingStage3",
-    "VotingRound3",
-    "FailureRound3",
-  ];
-
   const activeStates = [
     "Funding",
     "BuildingStage1",
@@ -251,13 +239,8 @@ function ProjectRow({
   if ((filter === "active" && !isActive) || (filter === "inactive" && isActive))
     return null;
 
-  const stageIndex = allStates.indexOf(state);
-  const progressPercent =
-    stageIndex >= 0 ? ((stageIndex + 1) / allStates.length) * 100 : 0;
-
-  let progressColor = "bg-blue-600";
-  if (state === "Cancelled") progressColor = "bg-gray-400";
-  else if (state === "Completed") progressColor = "bg-green-600";
+  const { percent: progressPercent, color: progressColor } =
+    getProjectProgress(state);
 
   const formatEth = (amount: bigint | string) =>
     parseFloat(typeof amount === "bigint" ? formatEther(amount) : amount)
@@ -300,8 +283,9 @@ function ProjectRow({
             <div
               className={`${progressColor} h-4 rounded-full transition-all duration-500`}
               style={{ width: `${progressPercent}%` }}
-            ></div>
+            />
           </div>
+
           <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
             {state}
           </div>
