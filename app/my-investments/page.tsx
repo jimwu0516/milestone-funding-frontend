@@ -212,9 +212,13 @@ function InvestmentRow({
   setShowVoteModal,
   isVoting,
 }: any) {
+  const { address: userAddress, isConnected } = useAccount();
+
   const { data: myVotes, isLoading: myVotesLoading } = useMyVotes(
-    inv.projectId
+    inv.projectId,
+    userAddress
   );
+
   const { data: votingData } = useProjectVoting(inv.projectId);
 
   const stageIndex = timeline.indexOf(inv.state);
@@ -230,24 +234,32 @@ function InvestmentRow({
     : null;
 
   let hasVoted = false;
-
-  if (!myVotesLoading && milestoneIndex !== null && myVotes) {
-    const voteRaw = Array.isArray(myVotes)
-      ? myVotes[milestoneIndex]
-      : myVotes[milestoneIndex.toString()];
-    hasVoted = BigInt(voteRaw) !== 0n;
+  if (!myVotesLoading && milestoneIndex !== null && Array.isArray(myVotes)) {
+    const voteValue = myVotes[milestoneIndex];
+    console.log(
+      "voteValue at milestoneIndex:",
+      voteValue,
+      "type:",
+      typeof voteValue
+    );
+    if (voteValue !== undefined && voteValue !== null) {
+      let voteBigInt: bigint;
+      if (typeof voteValue === "bigint") voteBigInt = voteValue;
+      else if (typeof voteValue === "object" && "_hex" in voteValue)
+        voteBigInt = BigInt(voteValue._hex);
+      else voteBigInt = BigInt(voteValue);
+      hasVoted = voteBigInt !== 0n;
+    }
   }
 
   const yesWeight =
     votingData && milestoneIndex !== null ? votingData[2][milestoneIndex] : 0n;
-
   const noWeight =
     votingData && milestoneIndex !== null ? votingData[3][milestoneIndex] : 0n;
 
   const yes = Number(yesWeight);
   const no = Number(noWeight);
   const sum = yes + no;
-
   const yesPercent = sum > 0 ? (yes / sum) * 100 : 0;
   const noPercent = sum > 0 ? (no / sum) * 100 : 0;
 
@@ -297,9 +309,15 @@ function InvestmentRow({
       )}
 
       <td className="px-4 py-3 text-center">
-        {inv.state.includes("VotingRound") ? (
-          hasVoted ? (
-            "-"
+        {inv.state.includes("VotingRound") && milestoneIndex !== null ? (
+          myVotesLoading ? (
+            "Loading..."
+          ) : hasVoted ? (
+            myVotes[milestoneIndex] === 1 ? (
+              <span className="text-green-600 font-semibold">Yes</span>
+            ) : (
+              <span className="text-red-600 font-semibold">No</span>
+            )
           ) : (
             <button
               onClick={() => {

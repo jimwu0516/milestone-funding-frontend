@@ -271,10 +271,9 @@ export function useVote() {
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
 
   const vote = (projectId: bigint, option: 1 | 2) => {
-    // 1 = Yes, 2 = No
     writeContract({
       address: CONTRACT_ADDRESS,
-      abi: contractABI.abi,
+      abi: CONTRACT_ABI,
       functionName: "vote",
       args: [projectId, option],
     });
@@ -283,14 +282,15 @@ export function useVote() {
   return { vote, hash, isPending, isConfirming, isSuccess, error };
 }
 
-export function useMyVotes(projectId: bigint | undefined) {
-  const { address } = useAccount();
+export function useMyVotes(projectId: bigint | undefined, userAddress: `0x${string}` | undefined) {
+  const enabled = projectId !== undefined && !!userAddress;
 
   return useReadContract({
     address: CONTRACT_ADDRESS,
     abi: CONTRACT_ABI,
     functionName: "getMyVotes",
-    args: projectId && address ? [projectId, address] : undefined,
-    query: { enabled: !!projectId && !!address },
+    args: enabled ? [projectId!, userAddress!] : undefined,
+    query: { enabled },
   });
 }
+
