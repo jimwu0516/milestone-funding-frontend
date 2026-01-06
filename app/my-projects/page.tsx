@@ -153,25 +153,15 @@ function ProjectsTable({
 }) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-left border-collapse">
+      <table className="w-full text-left table-fixed border-collapse">
         <thead>
           <tr className="bg-gray-50 dark:bg-gray-700">
-            <th className="px-4 py-2 text-gray-900 dark:text-white">Title</th>
-            <th className="px-4 py-2 text-gray-900 dark:text-white">Target</th>
-            <th className="px-4 py-2 text-gray-900 dark:text-white">
-              Total Funded
-            </th>
-            {filter === "active" ? (
-              <>
-                <th className="px-4 py-2 text-gray-900 dark:text-white">
-                  State
-                </th>
-                <th className="px-4 py-2 text-gray-900 dark:text-white">
-                  Action
-                </th>
-              </>
-            ) : (
-              <th className="px-4 py-2 text-gray-900 dark:text-white">State</th>
+            <th className="w-1/4 px-4 py-2 text-gray-900 dark:text-white">Title</th>
+            <th className="w-1/6 px-4 py-2 text-gray-900 dark:text-white">Target</th>
+            <th className="w-1/6 px-4 py-2 text-gray-900 dark:text-white">Total Funded</th>
+            <th className="w-1/3 px-4 py-2 text-gray-900 dark:text-white">State</th>
+            {filter === "active" && (
+              <th className="w-1/6 px-4 py-2 text-gray-900 dark:text-white">Action</th>
             )}
           </tr>
         </thead>
@@ -216,7 +206,7 @@ function ProjectRow({
     return (
       <tr>
         <td colSpan={filter === "active" ? 5 : 4} className="px-4 py-6">
-          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 animate-pulse"></div>
+          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-full animate-pulse"></div>
         </td>
       </tr>
     );
@@ -268,31 +258,22 @@ function ProjectRow({
   return (
     <>
       <tr className="hover:bg-gray-50 dark:hover:bg-gray-700">
-        <td className="px-4 py-3 text-gray-900 dark:text-white font-medium">
+        <td className="px-4 py-3 text-gray-900 dark:text-white font-medium truncate">
           {name}
         </td>
-        <td className="px-4 py-3 text-gray-900 dark:text-white">
-          {formatEth(softCapWei)} ETH
-        </td>
-        <td className="px-4 py-3 text-gray-900 dark:text-white">
-          {formatEth(totalFunded)} ETH
-        </td>
-
+        <td className="px-4 py-3 text-gray-900 dark:text-white">{formatEth(softCapWei)} ETH</td>
+        <td className="px-4 py-3 text-gray-900 dark:text-white">{formatEth(totalFunded)} ETH</td>
         <td className="px-4 py-3">
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
+          <div className="w-full bg-gray-900 rounded-full h-4 overflow-hidden">
             <div
               className={`${progressColor} h-4 rounded-full transition-all duration-500`}
               style={{ width: `${progressPercent}%` }}
             />
           </div>
-
-          <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-            {state}
-          </div>
+          <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 truncate">{state}</div>
         </td>
-
         {filter === "active" && (
-          <td className="px-4 py-3 flex gap-2">
+          <td className="px-4 py-3 flex gap-2 justify-start">
             {state === "Funding" && (
               <button
                 onClick={handleCancel}

@@ -5,7 +5,7 @@ export function getProjectProgress(state: ProjectState) {
   if (state === "Cancelled") {
     return {
       percent: 100,
-      color: "bg-gray-400",
+      color: "bg-gray-900",
     };
   }
 

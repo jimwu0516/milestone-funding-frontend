@@ -97,7 +97,7 @@ export default function VoteModal({
           )}
 
           <div className="mb-4">
-            <div className="flex h-4 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+            <div className="flex h-4 w-full overflow-hidden rounded-full bg-gray-900">
               {/* YES - green */}
               {yesPercent > 0 && (
                 <div
