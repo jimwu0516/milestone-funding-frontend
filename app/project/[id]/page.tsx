@@ -4,7 +4,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
 import { formatEther, parseEther } from "viem";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import TxModal from "@/components/TxModal";
 import {
@@ -23,6 +23,9 @@ export default function ProjectDetailPage() {
   const [showTxModal, setShowTxModal] = useState(false);
   const [fundAmount, setFundAmount] = useState("");
 
+  const [showBuildingModal, setShowBuildingModal] = useState(false);
+  const [prevState, setPrevState] = useState<string | null>(null);
+
   const {
     data: projectCore,
     isLoading: coreLoading,
@@ -34,6 +37,18 @@ export default function ProjectDetailPage() {
 
   const { fund, isPending, isConfirming, isSuccess, error, hash } =
     useFundProject();
+
+  useEffect(() => {
+    if (!projectCore) return;
+
+    const currentState = projectCore[6]; // state
+
+    if (prevState === "Funding" && currentState === "BuildingStage1") {
+      setShowBuildingModal(true);
+    }
+
+    setPrevState(currentState);
+  }, [projectCore]);
 
   if (!projectId) return <div>Invalid ProjectID</div>;
   if (coreLoading || !projectCore) return <div>Loading...</div>;
@@ -265,6 +280,28 @@ export default function ProjectDetailPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+
+        {showBuildingModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 text-center max-w-sm w-full shadow-xl">
+              <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">
+                🎉 Project Started
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                This project start building.
+              </p>
+              <button
+                onClick={() => {
+                  setShowBuildingModal(false);
+                  router.push("/my-investments");
+                }}
+                className={`${baseButtonClass} bg-blue-600 hover:bg-blue-700 text-white w-full`}
+              >
+                Go to My Investments
+              </button>
             </div>
           </div>
         )}
