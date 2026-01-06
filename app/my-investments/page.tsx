@@ -84,6 +84,7 @@ export default function MyInvestmentsPage() {
             setSelectedMilestone={setSelectedMilestone}
             setShowVoteModal={setShowVoteModal}
             isVoting={filter === "voting"}
+            isOngoing={filter === "ongoing"}
           />
         ) : (
           <div className="text-gray-600 dark:text-gray-400 py-12">
@@ -146,6 +147,7 @@ function ProjectsTable({
   setSelectedMilestone,
   setShowVoteModal,
   isVoting,
+  isOngoing,
 }: {
   investments: ReturnType<typeof useMyInvestments>["investments"];
   formatEth: (amount: bigint | string) => string;
@@ -153,6 +155,7 @@ function ProjectsTable({
   setSelectedMilestone: (index: number) => void;
   setShowVoteModal: (v: boolean) => void;
   isVoting: boolean;
+  isOngoing: boolean;
 }) {
   const timeline = [
     "Funding",
@@ -173,7 +176,11 @@ function ProjectsTable({
         <thead>
           <tr className="bg-gray-50 dark:bg-gray-700">
             <th className="px-4 py-2 text-gray-900 dark:text-white">Title</th>
-            <th className="px-4 py-2 text-gray-900 dark:text-white">Target</th>
+            {isOngoing && (
+              <th className="px-4 py-2 text-gray-900 dark:text-white">
+                Target
+              </th>
+            )}
             <th className="px-4 py-2 text-gray-900 dark:text-white">
               Total Funded
             </th>
@@ -186,7 +193,11 @@ function ProjectsTable({
                 Voting Status
               </th>
             )}
-            <th className="px-4 py-2 text-gray-900 dark:text-white">Action</th>
+            {isVoting && (
+              <th className="px-4 py-2 text-gray-900 dark:text-white">
+                Action
+              </th>
+            )}
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -200,6 +211,7 @@ function ProjectsTable({
               setSelectedMilestone={setSelectedMilestone}
               setShowVoteModal={setShowVoteModal}
               isVoting={isVoting}
+              isOngoing={isOngoing}
             />
           ))}
         </tbody>
@@ -217,6 +229,7 @@ function InvestmentRow({
   setSelectedMilestone,
   setShowVoteModal,
   isVoting,
+  isOngoing,
 }: any) {
   const { address: userAddress } = useAccount();
 
@@ -263,9 +276,11 @@ function InvestmentRow({
       <td className="px-4 py-3 text-gray-900 dark:text-white font-medium">
         {inv.name}
       </td>
-      <td className="px-4 py-3 text-gray-900 dark:text-white">
-        {formatEth(inv.softCapWei)} ETH
-      </td>
+      {isOngoing && (
+        <th className="px-4 py-2 text-gray-900 dark:text-white">
+          {formatEth(inv.softCapWei)} ETH
+        </th>
+      )}
       <td className="px-4 py-3 text-gray-900 dark:text-white">
         {formatEth(inv.totalFunded)} ETH
       </td>
@@ -307,10 +322,9 @@ function InvestmentRow({
           </div>
         </td>
       )}
-
-      <td className="px-4 py-3 text-center">
-        {inv.state.includes("VotingRound") && milestoneIndex !== null ? (
-          myVotesLoading ? (
+      {isVoting && (
+        <td className="px-4 py-3 text-center">
+          {myVotesLoading ? (
             "Loading..."
           ) : hasVoted ? (
             myVotes[milestoneIndex] === 1 ? (
@@ -329,11 +343,9 @@ function InvestmentRow({
             >
               Vote
             </button>
-          )
-        ) : (
-          "-"
-        )}
-      </td>
+          )}
+        </td>
+      )}
     </tr>
   );
 }
