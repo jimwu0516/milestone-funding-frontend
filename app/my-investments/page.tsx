@@ -1,7 +1,7 @@
 // app/my-investments/page.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAccount } from "wagmi";
 import { formatEther } from "viem";
 import Navbar from "@/components/Navbar";
@@ -22,11 +22,48 @@ export default function MyInvestmentsPage() {
   );
   const [mounted, setMounted] = useState(false);
 
+  const prevStatesRef = useRef<Record<bigint, string>>({});
+  const [showStageModal, setShowStageModal] = useState(false);
+  const [stageMessage, setStageMessage] = useState("");
+
   const [showVoteModal, setShowVoteModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState<bigint | null>(null);
   const [selectedMilestone, setSelectedMilestone] = useState<number>(0);
 
   useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    if (!investments || investments.length === 0) return;
+
+    investments.forEach((inv) => {
+      const prev = prevStatesRef.current[inv.projectId] || inv.state;
+      const current = inv.state;
+
+      if (prev !== current) {
+        if (prev.startsWith("VotingRound") && current === "Completed") {
+          setStageMessage("This project Completed");
+          setFilter("history");
+          setShowStageModal(true);
+        } else if (
+          prev.startsWith("VotingRound") &&
+          ["BuildingStage2", "BuildingStage3"].includes(current)
+        ) {
+          setStageMessage("This project has been moved to next stage");
+          setFilter("ongoing");
+          setShowStageModal(true);
+        } else if (
+          prev.startsWith("VotingRound") &&
+          ["FailureRound1", "FailureRound2", "FailureRound3"].includes(current)
+        ) {
+          setStageMessage("This round did not pass, please claim your refund");
+          setFilter("history");
+          setShowStageModal(true);
+        }
+      }
+
+      prevStatesRef.current[inv.projectId] = inv.state;
+    });
+  }, [investments]);
+
   if (!mounted) return null;
 
   if (!isConnected) {
@@ -65,6 +102,22 @@ export default function MyInvestmentsPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <Navbar />
+      {showStageModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm bg-black/20">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl text-center">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              {stageMessage}
+            </h3>
+            <button
+              onClick={() => setShowStageModal(false)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:scale-105 cursor-pointer"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
         <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">
           My Investments
