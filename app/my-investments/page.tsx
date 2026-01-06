@@ -334,9 +334,9 @@ function InvestmentRow({
         {inv.name}
       </td>
       {isOngoing && (
-        <th className="px-4 py-2 text-gray-900 dark:text-white">
+        <td className="px-4 py-3 text-gray-900 dark:text-white w-[15%]">
           {formatEth(inv.softCapWei)} ETH
-        </th>
+        </td>
       )}
       <td className="px-4 py-3 text-gray-900 dark:text-white">
         {formatEth(inv.totalFunded)} ETH
