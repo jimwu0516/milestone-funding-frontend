@@ -247,25 +247,25 @@ export default function ProjectDetailPage() {
           </div>
         </div>
 
-        {investments && investments[0]?.length > 0 && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-              Investors
-            </h2>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>
-                    <th className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
-                      Address
-                    </th>
-                    <th className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
-                      Amount
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {investments[0].map((investor, index) => (
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+            Investors
+          </h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead className="bg-gray-50 dark:bg-gray-700">
+                <tr>
+                  <th className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
+                    Address
+                  </th>
+                  <th className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
+                    Amount
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                {investments && investments[0]?.length > 0 ? (
+                  investments[0].map((investor, index) => (
                     <tr
                       key={investor}
                       className="hover:bg-gray-50 dark:hover:bg-gray-700"
@@ -277,12 +277,21 @@ export default function ProjectDetailPage() {
                         {formatEth(investments[1][index])} ETH
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={2}
+                      className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center"
+                    >
+                      No investor yet
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
-        )}
+        </div>
 
         {showBuildingModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
