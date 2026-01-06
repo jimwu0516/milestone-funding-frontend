@@ -8,6 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import Navbar from "@/components/Navbar";
 import TxModal from "@/components/TxModal";
+import { CancelProjectButton } from "@/components/CancelProjectButton";
 import SubmitMilestoneModal from "@/components/SubmitMilestoneModal";
 import CreateProjectForm from "@/components/CreateProjectForm";
 import { useMyProjects } from "@/hooks/useMyProjects";
@@ -292,13 +293,7 @@ function ProjectRow({
           <td className="px-4 py-3">
             <div className="flex gap-2 justify-center">
               {state === "Funding" && (
-                <button
-                  onClick={handleCancel}
-                  disabled={isPending || isConfirming}
-                  className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm cursor-pointer disabled:opacity-50"
-                >
-                  {isPending || isConfirming ? "Canceling..." : "Cancel"}
-                </button>
+                <CancelProjectButton projectId={projectId} />
               )}
 
               {state.includes("Building") && (
