@@ -225,29 +225,33 @@ function ProjectsTable({
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-left border-collapse">
+      <table className="min-w-full border-collapse table-auto">
         <thead>
           <tr className="bg-gray-50 dark:bg-gray-700">
-            <th className="px-4 py-2 text-gray-900 dark:text-white">Title</th>
+            <th className="px-4 py-3 text-left text-gray-900 dark:text-white w-[30%]">
+              Title
+            </th>
             {isOngoing && (
-              <th className="px-4 py-2 text-gray-900 dark:text-white">
+              <th className="px-4 py-3 text-left text-gray-900 dark:text-white w-[15%]">
                 Target
               </th>
             )}
-            <th className="px-4 py-2 text-gray-900 dark:text-white">
+            <th className="px-4 py-3 text-left text-gray-900 dark:text-white w-[15%]">
               Total Funded
             </th>
-            <th className="px-4 py-2 text-gray-900 dark:text-white">
+            <th className="px-4 py-3 text-left text-gray-900 dark:text-white w-[15%]">
               My Investment
             </th>
-            <th className="px-4 py-2 text-gray-900 dark:text-white">State</th>
+            <th className="px-4 py-3 text-left text-gray-900 dark:text-white w-[15%]">
+              State
+            </th>
             {isVoting && (
-              <th className="px-4 py-2 text-gray-900 dark:text-white">
+              <th className="px-4 py-3 text-left text-gray-900 dark:text-white w-[15%]">
                 Voting Status
               </th>
             )}
             {isVoting && (
-              <th className="px-4 py-2 text-gray-900 dark:text-white">
+              <th className="px-4 py-3 text-center text-gray-900 dark:text-white w-[10%]">
                 Action
               </th>
             )}
@@ -341,21 +345,20 @@ function InvestmentRow({
         {formatEth(inv.invested)} ETH
       </td>
       <td className="px-4 py-3">
-        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
+        <div className="w-full bg-gray-900 rounded-full h-4 overflow-hidden shadow-inner">
           <div
             className={`${progressColor} h-4 rounded-full transition-all duration-500`}
             style={{ width: `${progressPercent}%` }}
           />
         </div>
-
-        <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+        <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 truncate">
           {inv.state}
         </div>
       </td>
 
       {isVoting && (
-        <td className="px-4 py-3">
-          <div className="flex h-4 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+        <td className="px-4 py-3 text-center">
+          <div className="flex h-4 w-full overflow-hidden rounded-full bg-gray-900 shadow-inner">
             {yesPercent > 0 && (
               <div
                 className="bg-green-600 transition-all"
@@ -375,6 +378,7 @@ function InvestmentRow({
           </div>
         </td>
       )}
+
       {isVoting && (
         <td className="px-4 py-3 text-center">
           {myVotesLoading ? (

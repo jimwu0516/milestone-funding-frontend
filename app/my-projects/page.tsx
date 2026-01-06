@@ -156,12 +156,22 @@ function ProjectsTable({
       <table className="w-full text-left table-fixed border-collapse">
         <thead>
           <tr className="bg-gray-50 dark:bg-gray-700">
-            <th className="w-1/4 px-4 py-2 text-gray-900 dark:text-white">Title</th>
-            <th className="w-1/6 px-4 py-2 text-gray-900 dark:text-white">Target</th>
-            <th className="w-1/6 px-4 py-2 text-gray-900 dark:text-white">Total Funded</th>
-            <th className="w-1/3 px-4 py-2 text-gray-900 dark:text-white">State</th>
+            <th className="w-1/4 px-4 py-2 text-gray-900 dark:text-white">
+              Title
+            </th>
+            <th className="w-1/6 px-4 py-2 text-gray-900 dark:text-white">
+              Target
+            </th>
+            <th className="w-1/6 px-4 py-2 text-gray-900 dark:text-white">
+              Total Funded
+            </th>
+            <th className="w-1/3 px-4 py-2 text-gray-900 dark:text-white">
+              State
+            </th>
             {filter === "active" && (
-              <th className="w-1/6 px-4 py-2 text-gray-900 dark:text-white">Action</th>
+              <th className="w-1/6 px-4 py-2 text-center text-gray-900 dark:text-white">
+                Action
+              </th>
             )}
           </tr>
         </thead>
@@ -261,8 +271,12 @@ function ProjectRow({
         <td className="px-4 py-3 text-gray-900 dark:text-white font-medium truncate">
           {name}
         </td>
-        <td className="px-4 py-3 text-gray-900 dark:text-white">{formatEth(softCapWei)} ETH</td>
-        <td className="px-4 py-3 text-gray-900 dark:text-white">{formatEth(totalFunded)} ETH</td>
+        <td className="px-4 py-3 text-gray-900 dark:text-white">
+          {formatEth(softCapWei)} ETH
+        </td>
+        <td className="px-4 py-3 text-gray-900 dark:text-white">
+          {formatEth(totalFunded)} ETH
+        </td>
         <td className="px-4 py-3">
           <div className="w-full bg-gray-900 rounded-full h-4 overflow-hidden">
             <div
@@ -270,27 +284,33 @@ function ProjectRow({
               style={{ width: `${progressPercent}%` }}
             />
           </div>
-          <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 truncate">{state}</div>
+          <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 truncate">
+            {state}
+          </div>
         </td>
         {filter === "active" && (
-          <td className="px-4 py-3 flex gap-2 justify-start">
-            {state === "Funding" && (
-              <button
-                onClick={handleCancel}
-                disabled={isPending || isConfirming}
-                className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm cursor-pointer disabled:opacity-50"
-              >
-                {isPending || isConfirming ? "Canceling..." : "Cancel"}
-              </button>
-            )}
-            {state.includes("Building") && (
-              <button
-                onClick={() => setShowMilestoneModal(true)}
-                className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm cursor-pointer"
-              >
-                Submit Milestone
-              </button>
-            )}
+          <td className="px-4 py-3">
+            <div className="flex gap-2 justify-center">
+              {state === "Funding" && (
+                <button
+                  onClick={handleCancel}
+                  disabled={isPending || isConfirming}
+                  className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm cursor-pointer disabled:opacity-50"
+                >
+                  {isPending || isConfirming ? "Canceling..." : "Cancel"}
+                </button>
+              )}
+
+              {state.includes("Building") && (
+                <button
+                  onClick={() => setShowMilestoneModal(true)}
+                  className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm cursor-pointer"
+                >
+                  Submit Milestone
+                </button>
+              )}
+            </div>
+
             {showMilestoneModal && (
               <SubmitMilestoneModal
                 projectId={projectId}
