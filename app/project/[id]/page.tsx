@@ -106,6 +106,10 @@ export default function ProjectDetailPage() {
       .replace(/\.?0+$/, "");
 
   const handleFundClick = () => {
+    if (!address) {
+      alert("Please connect your wallet first!");
+      return;
+    }
     setFundAmount("");
     setShowInputModal(true);
     setShowTxModal(false);
