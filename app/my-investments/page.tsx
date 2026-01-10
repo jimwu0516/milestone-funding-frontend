@@ -6,12 +6,16 @@ import { useAccount } from "wagmi";
 import { formatEther } from "viem";
 import Navbar from "@/components/Navbar";
 import VoteModal from "@/components/VoteModal";
-import { useMyInvestments } from "@/hooks/useMyInvestments";
-import { useProjectVoting, useMyVotes } from "@/hooks/useContract";
+import {
+  useMyInvestments,
+  useProjectVoting,
+  useMyVotes,
+} from "@/hooks/useContract";
 import { getProjectProgress } from "@/utils/projectProgress";
+import { PROJECT_TIMELINE, ProjectState } from "@/constants/projectTimeline";
 
 export default function MyInvestmentsPage() {
-  const { isConnected } = useAccount();
+  const { isConnected, address: userAddress } = useAccount();
   const {
     investments,
     isLoading,
@@ -22,7 +26,7 @@ export default function MyInvestmentsPage() {
   );
   const [mounted, setMounted] = useState(false);
 
-  const prevStatesRef = useRef<Record<bigint, string>>({});
+  const prevStatesRef = useRef<Record<bigint, number>>({});
   const [showStageModal, setShowStageModal] = useState(false);
   const [stageMessage, setStageMessage] = useState("");
 
@@ -31,28 +35,32 @@ export default function MyInvestmentsPage() {
   const [selectedMilestone, setSelectedMilestone] = useState<number>(0);
 
   useEffect(() => setMounted(true), []);
+
   useEffect(() => {
     if (!investments || investments.length === 0) return;
 
+    const VOTING_STATES = [3, 6, 9]; // VotingRound1,2,3
+
     investments.forEach((inv) => {
-      const prev = prevStatesRef.current[inv.projectId] || inv.state;
+      const prev = prevStatesRef.current[inv.projectId] ?? inv.state;
       const current = inv.state;
 
       if (prev !== current) {
-        if (prev.startsWith("VotingRound") && current === "Completed") {
+        if (VOTING_STATES.includes(prev) && current === 11) {
+          // Completed = 11
           setStageMessage("This project Completed");
           setFilter("history");
           setShowStageModal(true);
         } else if (
-          prev.startsWith("VotingRound") &&
-          ["BuildingStage2", "BuildingStage3"].includes(current)
+          VOTING_STATES.includes(prev) &&
+          [5, 8].includes(current) // BuildingStage2,3
         ) {
           setStageMessage("This project has been moved to next stage");
           setFilter("ongoing");
           setShowStageModal(true);
         } else if (
-          prev.startsWith("VotingRound") &&
-          ["FailureRound1", "FailureRound2", "FailureRound3"].includes(current)
+          VOTING_STATES.includes(prev) &&
+          [4, 7, 10].includes(current) // FailureRound1,2,3
         ) {
           setStageMessage("This round did not pass, please claim your refund");
           setFilter("history");
@@ -60,7 +68,7 @@ export default function MyInvestmentsPage() {
         }
       }
 
-      prevStatesRef.current[inv.projectId] = inv.state;
+      prevStatesRef.current[inv.projectId] = current;
     });
   }, [investments]);
 
@@ -79,16 +87,10 @@ export default function MyInvestmentsPage() {
 
   // --- Filter definitions ---
   const FILTER_STATES = {
-    ongoing: ["Funding", "BuildingStage1", "BuildingStage2", "BuildingStage3"],
-    voting: ["VotingRound1", "VotingRound2", "VotingRound3"],
-    history: [
-      "Cancelled",
-      "Completed",
-      "FailureRound1",
-      "FailureRound2",
-      "FailureRound3",
-    ],
-  } as const;
+    ongoing: [1, 2, 5, 8], // Funding, BuildingStage1/2/3
+    voting: [3, 6, 9], // VotingRound1/2/2
+    history: [0, 11, 4, 7, 10], // Cancelled, Completed, FailureRound1/2/3
+  };
 
   const filteredInvestments = investments.filter((inv) =>
     FILTER_STATES[filter].includes(inv.state)
@@ -138,6 +140,7 @@ export default function MyInvestmentsPage() {
             setShowVoteModal={setShowVoteModal}
             isVoting={filter === "voting"}
             isOngoing={filter === "ongoing"}
+            userAddress={userAddress!}
           />
         ) : (
           <div className="text-gray-600 dark:text-gray-400 py-12">
@@ -150,9 +153,7 @@ export default function MyInvestmentsPage() {
             projectId={selectedProject}
             milestoneIndex={selectedMilestone}
             onClose={() => setShowVoteModal(false)}
-            onSuccess={() => {
-              refetchInvestments();
-            }}
+            onSuccess={() => refetchInvestments()}
           />
         )}
       </main>
@@ -160,7 +161,7 @@ export default function MyInvestmentsPage() {
   );
 }
 
-// --- Filter tabs component ---
+// --- Filter Tabs ---
 function FilterTabs({
   filter,
   setFilter,
@@ -201,6 +202,7 @@ function ProjectsTable({
   setShowVoteModal,
   isVoting,
   isOngoing,
+  userAddress,
 }: {
   investments: ReturnType<typeof useMyInvestments>["investments"];
   formatEth: (amount: bigint | string) => string;
@@ -209,20 +211,8 @@ function ProjectsTable({
   setShowVoteModal: (v: boolean) => void;
   isVoting: boolean;
   isOngoing: boolean;
+  userAddress: string;
 }) {
-  const timeline = [
-    "Funding",
-    "BuildingStage1",
-    "VotingRound1",
-    "FailureRound1",
-    "BuildingStage2",
-    "VotingRound2",
-    "FailureRound2",
-    "BuildingStage3",
-    "VotingRound3",
-    "FailureRound3",
-  ];
-
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full border-collapse table-auto">
@@ -262,13 +252,13 @@ function ProjectsTable({
             <InvestmentRow
               key={inv.projectId.toString()}
               inv={inv}
-              timeline={timeline}
               formatEth={formatEth}
               setSelectedProject={setSelectedProject}
               setSelectedMilestone={setSelectedMilestone}
               setShowVoteModal={setShowVoteModal}
               isVoting={isVoting}
               isOngoing={isOngoing}
+              userAddress={userAddress}
             />
           ))}
         </tbody>
@@ -280,16 +270,14 @@ function ProjectsTable({
 // --- Investment Row ---
 function InvestmentRow({
   inv,
-  timeline,
   formatEth,
   setSelectedProject,
   setSelectedMilestone,
   setShowVoteModal,
   isVoting,
   isOngoing,
+  userAddress,
 }: any) {
-  const { address: userAddress } = useAccount();
-
   const { data: myVotes, isLoading: myVotesLoading } = useMyVotes(
     inv.projectId,
     userAddress
@@ -300,22 +288,14 @@ function InvestmentRow({
     inv.state
   );
 
-  const milestoneIndex = inv.state.includes("VotingRound")
-    ? Number(inv.state.replace("VotingRound", "")) - 1
-    : null;
+  const milestoneIndex =
+    inv.state === 3 ? 0 : inv.state === 6 ? 1 : inv.state === 9 ? 2 : null;
 
-  let hasVoted = false;
-  if (!myVotesLoading && milestoneIndex !== null && Array.isArray(myVotes)) {
-    const voteValue = myVotes[milestoneIndex];
-    if (voteValue !== undefined && voteValue !== null) {
-      let voteBigInt: bigint;
-      if (typeof voteValue === "bigint") voteBigInt = voteValue;
-      else if (typeof voteValue === "object" && "_hex" in voteValue)
-        voteBigInt = BigInt(voteValue._hex);
-      else voteBigInt = BigInt(voteValue);
-      hasVoted = voteBigInt !== 0n;
-    }
-  }
+  const hasVoted =
+    !myVotesLoading &&
+    milestoneIndex !== null &&
+    Array.isArray(myVotes) &&
+    BigInt(myVotes[milestoneIndex] ?? 0n) !== 0n;
 
   const yesWeight =
     votingData && milestoneIndex !== null ? votingData[2][milestoneIndex] : 0n;
@@ -334,7 +314,7 @@ function InvestmentRow({
         {inv.name}
       </td>
       {isOngoing && (
-        <td className="px-4 py-3 text-gray-900 dark:text-white w-[15%]">
+        <td className="px-4 py-3 text-gray-900 dark:text-white">
           {formatEth(inv.softCapWei)} ETH
         </td>
       )}
@@ -352,56 +332,55 @@ function InvestmentRow({
           />
         </div>
         <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 truncate">
-          {inv.state}
+          {PROJECT_TIMELINE[inv.state]}
         </div>
       </td>
 
       {isVoting && (
-        <td className="px-4 py-3 text-center">
-          <div className="flex h-4 w-full overflow-hidden rounded-full bg-gray-900 shadow-inner">
-            {yesPercent > 0 && (
-              <div
-                className="bg-green-600 transition-all"
-                style={{ width: `${yesPercent}%` }}
-              />
-            )}
-            {noPercent > 0 && (
-              <div
-                className="bg-red-600 transition-all"
-                style={{ width: `${noPercent}%` }}
-              />
-            )}
-          </div>
-          <div className="mt-1 flex justify-between text-xs">
-            <span className="text-green-600 dark:text-green-400">Yes</span>
-            <span className="text-red-600 dark:text-red-400">No</span>
-          </div>
-        </td>
-      )}
-
-      {isVoting && (
-        <td className="px-4 py-3 text-center">
-          {myVotesLoading ? (
-            "Loading..."
-          ) : hasVoted ? (
-            myVotes[milestoneIndex] === 1 ? (
-              <span className="text-green-600 font-semibold">Yes</span>
+        <>
+          <td className="px-4 py-3 text-center">
+            <div className="flex h-4 w-full overflow-hidden rounded-full bg-gray-900 shadow-inner">
+              {yesPercent > 0 && (
+                <div
+                  className="bg-green-600 transition-all"
+                  style={{ width: `${yesPercent}%` }}
+                />
+              )}
+              {noPercent > 0 && (
+                <div
+                  className="bg-red-600 transition-all"
+                  style={{ width: `${noPercent}%` }}
+                />
+              )}
+            </div>
+            <div className="mt-1 flex justify-between text-xs">
+              <span className="text-green-600 dark:text-green-400">Yes</span>
+              <span className="text-red-600 dark:text-red-400">No</span>
+            </div>
+          </td>
+          <td className="px-4 py-3 text-center">
+            {myVotesLoading ? (
+              "Loading..."
+            ) : hasVoted ? (
+              myVotes[milestoneIndex] === 1 ? (
+                <span className="text-green-600 font-semibold">Yes</span>
+              ) : (
+                <span className="text-red-600 font-semibold">No</span>
+              )
             ) : (
-              <span className="text-red-600 font-semibold">No</span>
-            )
-          ) : (
-            <button
-              onClick={() => {
-                setSelectedProject(inv.projectId);
-                setSelectedMilestone(milestoneIndex);
-                setShowVoteModal(true);
-              }}
-              className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm cursor-pointer"
-            >
-              Vote
-            </button>
-          )}
-        </td>
+              <button
+                onClick={() => {
+                  setSelectedProject(inv.projectId);
+                  setSelectedMilestone(milestoneIndex);
+                  setShowVoteModal(true);
+                }}
+                className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm cursor-pointer"
+              >
+                Vote
+              </button>
+            )}
+          </td>
+        </>
       )}
     </tr>
   );

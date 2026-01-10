@@ -7,7 +7,6 @@ import { useProjectMeta, useProjectVoting, useVote } from "@/hooks/useContract";
 import { useAccount } from "wagmi";
 import { useMyVotes } from "@/hooks/useContract";
 
-
 type VoteModalProps = {
   projectId: bigint;
   milestoneIndex: number; // VotingRound1 => 0, VotingRound2 => 1, VotingRound3 => 2
@@ -65,11 +64,7 @@ export default function VoteModal({
 
   const { address } = useAccount();
 
-  const { refetch: refetchMyVotes } = useMyVotes(
-    projectId,
-    address
-  );
-
+  const { refetch: refetchMyVotes } = useMyVotes(projectId, address);
 
   const handleVote = async () => {
     if (!selected) return;
