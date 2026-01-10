@@ -4,6 +4,9 @@
 import { useState, useEffect } from "react";
 import TxModal from "./TxModal";
 import { useProjectMeta, useProjectVoting, useVote } from "@/hooks/useContract";
+import { useAccount } from "wagmi";
+import { useMyVotes } from "@/hooks/useContract";
+
 
 type VoteModalProps = {
   projectId: bigint;
@@ -60,6 +63,14 @@ export default function VoteModal({
   const yesPercent = sum > 0 ? (yes / sum) * 100 : 0;
   const noPercent = sum > 0 ? (no / sum) * 100 : 0;
 
+  const { address } = useAccount();
+
+  const { refetch: refetchMyVotes } = useMyVotes(
+    projectId,
+    address
+  );
+
+
   const handleVote = async () => {
     if (!selected) return;
     setShowTx(true);
@@ -71,6 +82,7 @@ export default function VoteModal({
     if (isSuccess) {
       await refetchVoting();
       await refetchMeta();
+      await refetchMyVotes();
       onSuccess?.();
       onClose();
     }
