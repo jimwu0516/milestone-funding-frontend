@@ -41,7 +41,7 @@ export default function ProjectDetailPage() {
   useEffect(() => {
     if (!projectCore) return;
 
-    const currentState = projectCore[6]; // state
+    const currentState = projectCore[7];
 
     if (prevState === "Funding" && currentState === "BuildingStage1") {
       setShowBuildingModal(true);
@@ -53,8 +53,16 @@ export default function ProjectDetailPage() {
   if (!projectId) return <div>Invalid ProjectID</div>;
   if (coreLoading || !projectCore) return <div>Loading...</div>;
 
-  const [creator, name, description, softCapWei, totalFunded, bond, state] =
-    projectCore;
+  const [
+    creator,
+    name,
+    description,
+    category,
+    softCapWei,
+    totalFunded,
+    bond,
+    state,
+  ] = projectCore;
 
   const remaining =
     softCapWei > totalFunded ? softCapWei - totalFunded : BigInt(0);
