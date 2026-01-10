@@ -42,6 +42,17 @@ export default function ProjectDetailPage() {
     "Completed",
   ];
 
+  const CATEGORY_LABELS = [
+    "Technology",
+    "Hardware",
+    "Creative",
+    "Education",
+    "SocialImpact",
+    "Research",
+    "Business",
+    "Community",
+  ];
+
   const {
     data: projectCore,
     isLoading: coreLoading,
@@ -125,6 +136,8 @@ export default function ProjectDetailPage() {
       alert(err?.message || "ERROR");
     }
   };
+
+  const categoryLabel = CATEGORY_LABELS[category] ?? `Category ${category}`;
 
   const baseButtonClass =
     "px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow transform hover:scale-105 cursor-pointer";
@@ -245,7 +258,12 @@ export default function ProjectDetailPage() {
         {/* About + Milestones */}
         <div className="flex flex-col md:flex-row gap-6 mb-8">
           {/* About */}
-          <div className="flex-1 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 break-words">
+          <div className="flex-1 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 break-words relative">
+            {/* Category */}
+            <span className="absolute top-4 right-4 bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 px-2 py-1 text-xs font-semibold rounded-full">
+              {categoryLabel}
+            </span>
+
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
               About this project
             </h2>
