@@ -108,16 +108,28 @@ export function useFundProject() {
 
 export function useCreateProject() {
   const { writeContract, data: hash, isPending, error } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
-    hash,
-  });
+  const { isLoading: isConfirming, isSuccess } =
+    useWaitForTransactionReceipt({ hash });
 
-  const create = (name: string, description: string, softCapWei: bigint, bond: bigint) => {
+  const create = (
+    name: string,
+    description: string,
+    softCapWei: bigint,
+    category: number,
+    milestoneDescriptions: [string, string, string],
+    bond: bigint
+  ) => {
     writeContract({
       address: CONTRACT_ADDRESS,
       abi: CONTRACT_ABI,
       functionName: "createProject",
-      args: [name, description, softCapWei],
+      args: [
+        name,
+        description,
+        softCapWei,
+        category,
+        milestoneDescriptions,
+      ],
       value: bond,
     });
   };
@@ -131,6 +143,7 @@ export function useCreateProject() {
     hash,
   };
 }
+
 
 export function useCancelProject() {
   const { writeContract, data: hash, isPending, error } = useWriteContract();

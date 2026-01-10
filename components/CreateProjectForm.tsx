@@ -12,8 +12,12 @@ interface CreateProjectFormProps {
   onSuccess: () => void;
 }
 
-export default function CreateProjectForm({ onClose, onSuccess }: CreateProjectFormProps) {
-  const { create, isPending, isConfirming, isSuccess, error, hash } = useCreateProject();
+export default function CreateProjectForm({
+  onClose,
+  onSuccess,
+}: CreateProjectFormProps) {
+  const { create, isPending, isConfirming, isSuccess, error, hash } =
+    useCreateProject();
   const queryClient = useQueryClient();
   const [showInputModal, setShowInputModal] = useState(true);
   const [showTxModal, setShowTxModal] = useState(false);
@@ -21,24 +25,35 @@ export default function CreateProjectForm({ onClose, onSuccess }: CreateProjectF
     name: "",
     description: "",
     softCapEther: "",
+    category: 0,
+    milestones: ["", "", ""] as [string, string, string],
   });
 
-  const handleCreate = async () => {
-    const { name, description, softCapEther } = formData;
-    if (!name || !description || !softCapEther) return alert("Please fill in all fields.");
-    if (isNaN(Number(softCapEther)) || Number(softCapEther) <= 0) return alert("Please input valid value");
+  const CATEGORIES = [
+    "Technology",
+    "Hardware",
+    "Creative",
+    "Education",
+    "SocialImpact",
+    "Research",
+    "Business",
+    "Community",
+  ] as const;
 
-    try {
-      const softCapWei = parseEther(softCapEther);
-      const bond = softCapWei / BigInt(10); // 10% bond
-      setShowInputModal(false);
-      setShowTxModal(true);
-      await create(name, description, softCapWei, bond);
-    } catch {
-      alert("Error");
-      setShowInputModal(true);
-      setShowTxModal(false);
+  const handleCreate = async () => {
+    const { name, description, softCapEther, category, milestones } = formData;
+
+    if (!name || !description || !softCapEther || milestones.some((m) => !m)) {
+      return alert("Please fill in all fields.");
     }
+
+    const softCapWei = parseEther(softCapEther);
+    const bond = softCapWei / 10n;
+
+    setShowInputModal(false);
+    setShowTxModal(true);
+
+    await create(name, description, softCapWei, category, milestones, bond);
   };
 
   const handleCloseTxModal = () => {
@@ -69,23 +84,62 @@ export default function CreateProjectForm({ onClose, onSuccess }: CreateProjectF
                 type="text"
                 placeholder="Name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <textarea
                 placeholder="Description"
                 rows={4}
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+              <select
+                value={formData.category}
+                onChange={(e) =>
+                  setFormData({ ...formData, category: Number(e.target.value) })
+                }
+                className="w-full px-4 py-2 border rounded-lg"
+              >
+                {CATEGORIES.map((cat, idx) => (
+                  <option key={idx} value={idx}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+
+              {formData.milestones.map((m, i) => (
+                <input
+                  key={i}
+                  type="text"
+                  placeholder={`Milestone ${i + 1}`}
+                  value={m}
+                  onChange={(e) => {
+                    const next = [...formData.milestones] as [
+                      string,
+                      string,
+                      string
+                    ];
+                    next[i] = e.target.value;
+                    setFormData({ ...formData, milestones: next });
+                  }}
+                  className="w-full px-4 py-2 border rounded-lg"
+                />
+              ))}
+
               <input
                 type="number"
                 min={0}
                 step={0.0001}
                 placeholder="Target (ETH)"
                 value={formData.softCapEther}
-                onChange={(e) => setFormData({ ...formData, softCapEther: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, softCapEther: e.target.value })
+                }
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -110,7 +164,15 @@ export default function CreateProjectForm({ onClose, onSuccess }: CreateProjectF
       <TxModal
         isOpen={showTxModal}
         onClose={handleCloseTxModal}
-        status={error ? "error" : isSuccess ? "success" : isConfirming ? "confirming" : "pending"}
+        status={
+          error
+            ? "error"
+            : isSuccess
+            ? "success"
+            : isConfirming
+            ? "confirming"
+            : "pending"
+        }
         hash={hash || null}
         errorMessage={error ? "Try again" : undefined}
       />
