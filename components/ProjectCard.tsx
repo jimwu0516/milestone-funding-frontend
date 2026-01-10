@@ -13,7 +13,19 @@ interface ProjectCardProps {
   totalFunded: bigint;
   bond: bigint;
   state: string;
+  category: number;
 }
+
+const CATEGORY_LABELS = [
+  "Technology",
+  "Hardware",
+  "Creative",
+  "Education",
+  "SocialImpact",
+  "Research",
+  "Business",
+  "Community",
+];
 
 export default function ProjectCard({
   projectId,
@@ -24,11 +36,14 @@ export default function ProjectCard({
   totalFunded,
   bond,
   state,
+  category,
 }: ProjectCardProps) {
   const formatEth = (amount: bigint) => {
     const eth = parseFloat(formatEther(amount));
     return eth.toFixed(8).replace(/\.?0+$/, "");
   };
+
+  const categoryLabel = CATEGORY_LABELS[category] ?? `Category ${category}`;
 
   const softCap = formatEth(softCapWei);
   const funded = formatEth(totalFunded);
@@ -51,7 +66,7 @@ export default function ProjectCard({
             {name}
           </h3>
           <span className="px-3 py-1 text-xs font-medium rounded-full bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
-            {state}
+            {categoryLabel}
           </span>
         </div>
 
@@ -64,7 +79,9 @@ export default function ProjectCard({
           </div>
 
           <div className="flex justify-between text-sm">
-            <span className="text-gray-500 dark:text-gray-400">TotalFunded</span>
+            <span className="text-gray-500 dark:text-gray-400">
+              TotalFunded
+            </span>
             <span className="text-gray-900 dark:text-white font-semibold">
               {funded} ETH
             </span>

@@ -80,7 +80,7 @@ function ProjectCardLoader({ projectId }: { projectId: bigint }) {
     );
   }
 
-  const [creator, name, description, softCapWei, totalFunded, bond, state] = data;
+  const [creator, name, description, category, softCapWei, totalFunded, bond, state] = data;
 
   return (
     <ProjectCard
@@ -92,6 +92,7 @@ function ProjectCardLoader({ projectId }: { projectId: bigint }) {
       totalFunded={totalFunded}
       bond={bond}
       state={state}
+      category={category}
     />
   );
 }
