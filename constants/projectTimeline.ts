@@ -1,5 +1,6 @@
 // constants/projectTimeline.ts
 export const PROJECT_TIMELINE = [
+  "Cancelled",      
   "Funding",
   "BuildingStage1",
   "VotingRound1",
@@ -13,4 +14,4 @@ export const PROJECT_TIMELINE = [
   "Completed",
 ] as const;
 
-export type ProjectState = (typeof PROJECT_TIMELINE)[number] | "Cancelled";
+export type ProjectState = (typeof PROJECT_TIMELINE)[number];
