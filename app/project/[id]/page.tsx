@@ -11,6 +11,7 @@ import {
   useProjectCore,
   useAllInvestments,
   useFundProject,
+  useMilestoneDescriptions,
 } from "@/hooks/useContract";
 
 export default function ProjectDetailPage() {
@@ -26,6 +27,21 @@ export default function ProjectDetailPage() {
   const [showBuildingModal, setShowBuildingModal] = useState(false);
   const [prevState, setPrevState] = useState<string | null>(null);
 
+  const states = [
+    "Cancelled",
+    "Funding",
+    "BuildingStage1",
+    "VotingRound1",
+    "FailureRound1",
+    "BuildingStage2",
+    "VotingRound2",
+    "FailureRound2",
+    "BuildingStage3",
+    "VotingRound3",
+    "FailureRound3",
+    "Completed",
+  ];
+
   const {
     data: projectCore,
     isLoading: coreLoading,
@@ -35,13 +51,19 @@ export default function ProjectDetailPage() {
   const { data: investments, refetch: refetchInvestments } =
     useAllInvestments(projectId);
 
+  const { data: milestoneDescriptions, isLoading: milestonesLoading } =
+    useMilestoneDescriptions(projectId);
+
   const { fund, isPending, isConfirming, isSuccess, error, hash } =
     useFundProject();
 
   useEffect(() => {
     if (!projectCore) return;
 
-    const currentState = projectCore[7];
+    const currentIndex = Number(projectCore[7]);
+    const currentState = states[currentIndex];
+
+    const prevIndex = prevState !== null ? states.indexOf(prevState) : null;
 
     if (prevState === "Funding" && currentState === "BuildingStage1") {
       setShowBuildingModal(true);
@@ -98,6 +120,7 @@ export default function ProjectDetailPage() {
       setShowTxModal(true);
 
       await fund(projectId, amount);
+      await refetchCore?.();
     } catch (err: any) {
       alert(err?.message || "ERROR");
     }
@@ -161,7 +184,6 @@ export default function ProjectDetailPage() {
         </div>
       )}
 
-      {/* Tx Modal */}
       <TxModal
         isOpen={showTxModal}
         onClose={handleCloseTxModal}
@@ -199,8 +221,31 @@ export default function ProjectDetailPage() {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 break-words">
+        <div className="mb-6">
+          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 mb-2">
+            <div
+              className="bg-blue-600 dark:bg-blue-500 h-4 rounded-full transition-all"
+              style={{
+                width: `${
+                  softCapWei > BigInt(0)
+                    ? Number((totalFunded * BigInt(100)) / softCapWei)
+                    : 0
+                }%`,
+              }}
+            />
+          </div>
+          <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+            <span>Total Funded</span>
+            <span>
+              {formatEth(totalFunded)} / {formatEth(softCapWei)} ETH
+            </span>
+          </div>
+        </div>
+
+        {/* About + Milestones */}
+        <div className="flex flex-col md:flex-row gap-6 mb-8">
+          {/* About */}
+          <div className="flex-1 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 break-words">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
               About this project
             </h2>
@@ -216,42 +261,31 @@ export default function ProjectDetailPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 flex flex-col items-center justify-center text-center">
-              <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                Target
+          {/* Milestones */}
+          <div className="flex-1 flex gap-4">
+            {milestonesLoading ? (
+              <div className="flex-1 flex items-center justify-center text-gray-500 dark:text-gray-400">
+                Loading milestones...
               </div>
-              <div className="text-2xl font-bold text-gray-900 dark:text-white leading-tight">
-                {formatEth(softCapWei)}
-                <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mt-1 break-words">
-                  ETH
-                </div>
-              </div>
-            </div>
+            ) : (
+              milestoneDescriptions?.map((desc, idx) => (
+                <div
+                  key={idx}
+                  className="flex-1 bg-gray-50 dark:bg-gray-700 rounded-lg p-6 flex flex-col justify-start items-center text-center"
+                  style={{ minHeight: "100%" }}
+                >
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                    Milestone {idx + 1}
+                  </div>
 
-            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 flex flex-col items-center justify-center text-center">
-              <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                Total Funded
-              </div>
-              <div className="text-2xl font-bold text-gray-900 dark:text-white leading-tight">
-                {formatEth(totalFunded)}
-                <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mt-1 break-words">
-                  ETH
+                  <div className="flex-1 flex items-center justify-center">
+                    <div className="text-base font-semibold text-gray-900 dark:text-white">
+                      {desc}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-
-            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 flex flex-col items-center justify-center text-center">
-              <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                Remaining
-              </div>
-              <div className="text-2xl font-bold text-gray-900 dark:text-white leading-tight">
-                {formatEth(remaining)}
-                <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mt-1 break-words">
-                  ETH
-                </div>
-              </div>
-            </div>
+              ))
+            )}
           </div>
         </div>
 
