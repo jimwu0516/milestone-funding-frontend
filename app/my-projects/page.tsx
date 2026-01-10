@@ -18,6 +18,8 @@ import {
   useCancelProject,
 } from "@/hooks/useContract";
 import { getProjectProgress } from "@/utils/projectProgress";
+import { PROJECT_TIMELINE } from "@/constants/projectTimeline";
+
 
 export default function MyProjectsPage() {
   const { address, isConnected } = useAccount();
@@ -201,14 +203,8 @@ function ProjectRow({
   filter: "active" | "inactive";
 }) {
   const { data, isLoading, error } = useProjectCore(projectId);
-  const {
-    cancel,
-    isPending,
-    isConfirming,
-    isSuccess,
-    error: cancelError,
-    hash,
-  } = useCancelProject();
+  const { cancel, isPending, isConfirming, isSuccess, error: cancelError, hash } =
+    useCancelProject();
   const queryClient = useQueryClient();
   const [showMilestoneModal, setShowMilestoneModal] = useState(false);
   const [showTxModal, setShowTxModal] = useState(false);
@@ -223,30 +219,38 @@ function ProjectRow({
     );
   if (error || !data) return null;
 
-  const [creator, name, , softCapWei, totalFunded, , state] = data;
+  const [creator, name, , , softCapWei, totalFunded, , state] = data as [
+    string,
+    string,
+    string,
+    number,
+    bigint,
+    bigint,
+    bigint,
+    number
+  ];
+
   if (creator.toLowerCase() !== userAddress.toLowerCase()) return null;
 
+  // active/inactive 判斷
   const activeStates = [
-    "Funding",
-    "BuildingStage1",
-    "VotingRound1",
-    "BuildingStage2",
-    "VotingRound2",
-    "BuildingStage3",
-    "VotingRound3",
+    1, // Funding
+    2, // BuildingStage1
+    3, // VotingRound1
+    5, // BuildingStage2
+    6, // VotingRound2
+    8, // BuildingStage3
+    9, // VotingRound3
   ];
 
   const isActive = activeStates.includes(state);
   if ((filter === "active" && !isActive) || (filter === "inactive" && isActive))
     return null;
 
-  const { percent: progressPercent, color: progressColor } =
-    getProjectProgress(state);
+  const { percent: progressPercent, color: progressColor } = getProjectProgress(state);
 
   const formatEth = (amount: bigint | string) =>
-    parseFloat(typeof amount === "bigint" ? formatEther(amount) : amount)
-      .toFixed(8)
-      .replace(/\.?0+$/, "");
+    parseFloat(typeof amount === "bigint" ? formatEther(amount) : amount).toFixed(8).replace(/\.?0+$/, "");
 
   const handleCancel = async () => {
     setShowTxModal(true);
@@ -286,24 +290,24 @@ function ProjectRow({
             />
           </div>
           <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 truncate">
-            {state}
+            {PROJECT_TIMELINE[state]}
           </div>
         </td>
         {filter === "active" && (
           <td className="px-4 py-3">
             <div className="flex gap-2 justify-center">
-              {state === "Funding" && (
+              {state === 1 && ( // Funding
                 <CancelProjectButton projectId={projectId} />
               )}
 
-              {state.includes("Building") && (
+              {state === 2 || state === 5 || state === 8 ? ( // BuildingStage1/2/3
                 <button
                   onClick={() => setShowMilestoneModal(true)}
                   className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm cursor-pointer"
                 >
                   Submit Milestone
                 </button>
-              )}
+              ) : null}
             </div>
 
             {showMilestoneModal && (
@@ -320,13 +324,7 @@ function ProjectRow({
         isOpen={showTxModal}
         onClose={handleCloseTxModal}
         status={
-          cancelError
-            ? "error"
-            : isSuccess
-            ? "success"
-            : isConfirming
-            ? "confirming"
-            : "pending"
+          cancelError ? "error" : isSuccess ? "success" : isConfirming ? "confirming" : "pending"
         }
         hash={hash || null}
         errorMessage={cancelError ? "Try again" : undefined}
