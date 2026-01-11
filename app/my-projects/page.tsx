@@ -20,7 +20,6 @@ import {
 import { getProjectProgress } from "@/utils/projectProgress";
 import { PROJECT_TIMELINE } from "@/constants/projectTimeline";
 
-
 export default function MyProjectsPage() {
   const { address, isConnected } = useAccount();
   const { projectIds, isLoading: idsLoading } = useMyProjects();
@@ -48,7 +47,7 @@ export default function MyProjectsPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <Navbar />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24 overflow-hidden">
         <Header setShowCreateForm={setShowCreateForm} />
         <FilterTabs filter={filter} setFilter={setFilter} />
 
@@ -156,39 +155,41 @@ function ProjectsTable({
 }) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-left table-fixed border-collapse">
-        <thead>
-          <tr className="bg-gray-50 dark:bg-gray-700">
-            <th className="w-1/4 px-4 py-2 text-gray-900 dark:text-white">
-              Title
-            </th>
-            <th className="w-1/6 px-4 py-2 text-gray-900 dark:text-white">
-              Target
-            </th>
-            <th className="w-1/6 px-4 py-2 text-gray-900 dark:text-white">
-              Total Funded
-            </th>
-            <th className="w-1/3 px-4 py-2 text-gray-900 dark:text-white">
-              State
-            </th>
-            {filter === "active" && (
-              <th className="w-1/6 px-4 py-2 text-center text-gray-900 dark:text-white">
-                Action
+      <div className="overflow-y-auto max-h-[60vh] overscroll-contain">
+        <table className="w-full text-left table-fixed border-collapse">
+          <thead className="sticky top-0 bg-gray-50 dark:bg-gray-700 z-10">
+            <tr>
+              <th className="w-1/4 px-4 py-2 text-gray-900 dark:text-white">
+                Title
               </th>
-            )}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-          {projectIds.map((id) => (
-            <ProjectRow
-              key={id.toString()}
-              projectId={id}
-              userAddress={userAddress}
-              filter={filter}
-            />
-          ))}
-        </tbody>
-      </table>
+              <th className="w-1/6 px-4 py-2 text-gray-900 dark:text-white">
+                Target
+              </th>
+              <th className="w-1/6 px-4 py-2 text-gray-900 dark:text-white">
+                Funded
+              </th>
+              <th className="w-1/3 px-4 py-2 text-gray-900 dark:text-white">
+                State
+              </th>
+              {filter === "active" && (
+                <th className="w-1/6 px-4 py-2 text-center text-gray-900 dark:text-white">
+                  Action
+                </th>
+              )}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+            {projectIds.map((id) => (
+              <ProjectRow
+                key={id.toString()}
+                projectId={id}
+                userAddress={userAddress}
+                filter={filter}
+              />
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -203,8 +204,14 @@ function ProjectRow({
   filter: "active" | "inactive";
 }) {
   const { data, isLoading, error } = useProjectCore(projectId);
-  const { cancel, isPending, isConfirming, isSuccess, error: cancelError, hash } =
-    useCancelProject();
+  const {
+    cancel,
+    isPending,
+    isConfirming,
+    isSuccess,
+    error: cancelError,
+    hash,
+  } = useCancelProject();
   const queryClient = useQueryClient();
   const [showMilestoneModal, setShowMilestoneModal] = useState(false);
   const [showTxModal, setShowTxModal] = useState(false);
@@ -247,10 +254,13 @@ function ProjectRow({
   if ((filter === "active" && !isActive) || (filter === "inactive" && isActive))
     return null;
 
-  const { percent: progressPercent, color: progressColor } = getProjectProgress(state);
+  const { percent: progressPercent, color: progressColor } =
+    getProjectProgress(state);
 
   const formatEth = (amount: bigint | string) =>
-    parseFloat(typeof amount === "bigint" ? formatEther(amount) : amount).toFixed(8).replace(/\.?0+$/, "");
+    parseFloat(typeof amount === "bigint" ? formatEther(amount) : amount)
+      .toFixed(8)
+      .replace(/\.?0+$/, "");
 
   const handleCancel = async () => {
     setShowTxModal(true);
@@ -324,7 +334,13 @@ function ProjectRow({
         isOpen={showTxModal}
         onClose={handleCloseTxModal}
         status={
-          cancelError ? "error" : isSuccess ? "success" : isConfirming ? "confirming" : "pending"
+          cancelError
+            ? "error"
+            : isSuccess
+            ? "success"
+            : isConfirming
+            ? "confirming"
+            : "pending"
         }
         hash={hash || null}
         errorMessage={cancelError ? "Try again" : undefined}
