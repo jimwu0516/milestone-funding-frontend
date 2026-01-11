@@ -105,7 +105,7 @@ export default function ProjectCard({
           </div>
         </div>
 
-        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-2">
+        <div className="w-full bg-gray-200 dark:bg-gray-900 rounded-full h-2 mb-2">
           <div
             className="bg-blue-600 dark:bg-blue-500 h-2 rounded-full transition-all"
             style={{ width: `${Math.min(progress, 100)}%` }}
