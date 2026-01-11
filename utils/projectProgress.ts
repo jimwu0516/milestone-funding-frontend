@@ -10,7 +10,7 @@ export function getProjectProgress(state: ProjectState | number) {
   }
 
   if (stateName === "Cancelled") {
-    return { percent: 100, color: "bg-gray-900" };
+    return { percent: 100, color: "bg-gray-700" };
   }
 
   const index = PROJECT_TIMELINE.indexOf(stateName as any);
