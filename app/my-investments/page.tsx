@@ -206,42 +206,42 @@ function ProjectsTable({
           <table className="min-w-full border-collapse table-auto">
             <thead className="sticky top-0 z-10 bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur border-b border-gray-200 dark:border-gray-700">
               <tr>
-                <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[30%]">
+                <th className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[30%]">
                   Project
                 </th>
 
                 {isOngoing && (
-                  <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[15%]">
+                  <th className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[15%]">
                     Target
                   </th>
                 )}
 
-                <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[15%]">
+                <th className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[15%]">
                   Total Funded
                 </th>
 
-                <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[15%]">
+                <th className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[15%]">
                   My Investment
                 </th>
 
                 {isOngoing || isVoting ? (
-                  <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[15%]">
+                  <th className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[15%]">
                     Progress
                   </th>
                 ) : (
-                  <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[15%]">
+                  <th className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[15%]">
                     Result
                   </th>
                 )}
 
                 {isVoting && (
-                  <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[15%]">
+                  <th className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[15%]">
                     Voting
                   </th>
                 )}
 
                 {isVoting && (
-                  <th className="px-5 py-4 text-center text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[10%]">
+                  <th className="px-5 py-4 text-center text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[10%]">
                     Vote
                   </th>
                 )}

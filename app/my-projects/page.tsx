@@ -154,31 +154,40 @@ function ProjectsTable({
   filter: "active" | "inactive";
 }) {
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
       <div className="overflow-y-auto max-h-[60vh] overscroll-contain">
-        <table className="w-full text-left table-fixed border-collapse">
-          <thead className="sticky top-0 bg-gray-50 dark:bg-gray-700 z-10">
+        <table className="min-w-full table-auto border-collapse">
+          <thead className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
             <tr>
-              <th className="w-1/4 px-4 py-2 text-gray-900 dark:text-white">
-                Title
+              <th className="px-5 py-4 text-left text-sm font-semibold text-gray-500 uppercase dark:text-gray-400 w-[30%]">
+                Project
               </th>
-              <th className="w-1/6 px-4 py-2 text-gray-900 dark:text-white">
+              <th className="px-5 py-4 text-left text-sm font-semibold text-gray-500 uppercase dark:text-gray-400 w-[15%]">
                 Target
               </th>
-              <th className="w-1/6 px-4 py-2 text-gray-900 dark:text-white">
+              <th className="px-5 py-4 text-left text-sm font-semibold text-gray-500 uppercase dark:text-gray-400 w-[15%]">
                 Funded
               </th>
-              <th className="w-1/3 px-4 py-2 text-gray-900 dark:text-white">
-                State
-              </th>
+
+              {filter === "active" ? (
+                <th className="px-5 py-4 text-center text-sm font-semibold text-gray-500 uppercase dark:text-gray-400 w-[15%]">
+                  Progress
+                </th>
+              ) : (
+                <th className="px-5 py-4 text-left text-sm font-semibold text-gray-500 uppercase dark:text-gray-400 w-[15%]">
+                  Result
+                </th>
+              )}
+
               {filter === "active" && (
-                <th className="w-1/6 px-4 py-2 text-center text-gray-900 dark:text-white">
+                <th className="px-5 py-4 text-center text-sm font-semibold text-gray-500 uppercase dark:text-gray-400 w-[15%]">
                   Action
                 </th>
               )}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+
+          <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
             {projectIds.map((id) => (
               <ProjectRow
                 key={id.toString()}
@@ -204,6 +213,10 @@ function ProjectRow({
   filter: "active" | "inactive";
 }) {
   const { data, isLoading, error } = useProjectCore(projectId);
+  const queryClient = useQueryClient();
+  const [showMilestoneModal, setShowMilestoneModal] = useState(false);
+  const [showTxModal, setShowTxModal] = useState(false);
+
   const {
     cancel,
     isPending,
@@ -212,9 +225,6 @@ function ProjectRow({
     error: cancelError,
     hash,
   } = useCancelProject();
-  const queryClient = useQueryClient();
-  const [showMilestoneModal, setShowMilestoneModal] = useState(false);
-  const [showTxModal, setShowTxModal] = useState(false);
 
   if (isLoading)
     return (
@@ -239,17 +249,7 @@ function ProjectRow({
 
   if (creator.toLowerCase() !== userAddress.toLowerCase()) return null;
 
-  // active/inactive 判斷
-  const activeStates = [
-    1, // Funding
-    2, // BuildingStage1
-    3, // VotingRound1
-    5, // BuildingStage2
-    6, // VotingRound2
-    8, // BuildingStage3
-    9, // VotingRound3
-  ];
-
+  const activeStates = [1, 2, 3, 5, 6, 8, 9];
   const isActive = activeStates.includes(state);
   if ((filter === "active" && !isActive) || (filter === "inactive" && isActive))
     return null;
@@ -282,42 +282,61 @@ function ProjectRow({
 
   return (
     <>
-      <tr className="hover:bg-gray-50 dark:hover:bg-gray-700">
-        <td className="px-4 py-3 text-gray-900 dark:text-white font-medium truncate">
-          {name}
-        </td>
-        <td className="px-4 py-3 text-gray-900 dark:text-white">
-          {formatEth(softCapWei)} ETH
-        </td>
-        <td className="px-4 py-3 text-gray-900 dark:text-white">
-          {formatEth(totalFunded)} ETH
-        </td>
-        <td className="px-4 py-3">
-          <div className="w-full bg-gray-900 rounded-full h-4 overflow-hidden">
-            <div
-              className={`${progressColor} h-4 rounded-full transition-all duration-500`}
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-          <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 truncate">
-            {PROJECT_TIMELINE[state]}
+      <tr className="group hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+        {/* Project */}
+        <td className="px-5 py-4">
+          <div className="flex flex-col">
+            <span className="font-semibold text-gray-900 dark:text-white">
+              {name}
+            </span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              #{projectId.toString()}
+            </span>
           </div>
         </td>
-        {filter === "active" && (
-          <td className="px-4 py-3">
-            <div className="flex gap-2 justify-center">
-              {state === 1 && ( // Funding
-                <CancelProjectButton projectId={projectId} />
-              )}
 
-              {state === 2 || state === 5 || state === 8 ? ( // BuildingStage1/2/3
+        {/* Target */}
+        <td className="px-5 py-4">
+          <span className="font-medium text-gray-900 dark:text-white">
+            {formatEth(softCapWei)} ETH
+          </span>
+        </td>
+
+        {/* Funded */}
+        <td className="px-5 py-4">
+          <span className="font-medium text-blue-600 dark:text-blue-400">
+            {formatEth(totalFunded)} ETH
+          </span>
+        </td>
+
+        {/* Progress */}
+        <td className="px-5 py-4">
+          <div className="flex flex-col gap-2">
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+              <div
+                className={`${progressColor} h-2 rounded-full transition-all duration-700`}
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+            <span className="text-xs text-gray-600 dark:text-gray-400 truncate">
+              {PROJECT_TIMELINE[state]}
+            </span>
+          </div>
+        </td>
+
+        {/* Action */}
+        {filter === "active" && (
+          <td className="px-5 py-4 text-center">
+            <div className="flex items-center justify-center gap-2">
+              {state === 1 && <CancelProjectButton projectId={projectId} />}
+              {(state === 2 || state === 5 || state === 8) && (
                 <button
                   onClick={() => setShowMilestoneModal(true)}
-                  className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm cursor-pointer"
+                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-semibold shadow-sm hover:scale-105 transition-all cursor-pointer"
                 >
-                  Submit Milestone
+                  Submit
                 </button>
-              ) : null}
+              )}
             </div>
 
             {showMilestoneModal && (
