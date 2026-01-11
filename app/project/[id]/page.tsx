@@ -14,6 +14,28 @@ import {
   useMilestoneDescriptions,
 } from "@/hooks/useContract";
 
+const CATEGORY_LABELS = [
+  "Technology",
+  "Hardware",
+  "Creative",
+  "Education",
+  "SocialImpact",
+  "Research",
+  "Business",
+  "Community",
+];
+
+const CATEGORY_STYLES: Record<number, string> = {
+  0: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200",
+  1: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+  2: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
+  3: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
+  4: "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200",
+  5: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+  6: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+  7: "bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200",
+};
+
 export default function ProjectDetailPage() {
   const router = useRouter();
   const params = useParams();
@@ -40,17 +62,6 @@ export default function ProjectDetailPage() {
     "VotingRound3",
     "FailureRound3",
     "Completed",
-  ];
-
-  const CATEGORY_LABELS = [
-    "Technology",
-    "Hardware",
-    "Creative",
-    "Education",
-    "SocialImpact",
-    "Research",
-    "Business",
-    "Community",
   ];
 
   const {
@@ -145,6 +156,10 @@ export default function ProjectDetailPage() {
 
   const baseButtonClass =
     "px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow transform hover:scale-105 cursor-pointer";
+
+  const categoryStyle =
+    CATEGORY_STYLES[category] ??
+    "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200";
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
@@ -264,7 +279,9 @@ export default function ProjectDetailPage() {
           {/* About */}
           <div className="flex-1 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 break-words relative">
             {/* Category */}
-            <span className="absolute top-4 right-4 bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 px-2 py-1 text-xs font-semibold rounded-full">
+            <span
+              className={`absolute top-4 right-4 rounded-full px-2 py-1 text-xs font-semibold ${categoryStyle}`}
+            >
               {categoryLabel}
             </span>
 

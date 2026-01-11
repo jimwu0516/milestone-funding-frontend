@@ -27,6 +27,17 @@ const CATEGORY_LABELS = [
   "Community",
 ];
 
+const CATEGORY_STYLES: Record<number, string> = {
+  0: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200", 
+  1: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200", 
+  2: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
+  3: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200", 
+  4: "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200",
+  5: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200", 
+  6: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200", 
+  7: "bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200", 
+};
+
 export default function ProjectCard({
   projectId,
   name,
@@ -52,6 +63,10 @@ export default function ProjectCard({
       ? Number((totalFunded * BigInt(100)) / softCapWei)
       : 0;
 
+  const categoryStyle =
+    CATEGORY_STYLES[category] ??
+    "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200";
+
   return (
     <Link href={`/project/${projectId.toString()}`}>
       <div
@@ -65,7 +80,9 @@ export default function ProjectCard({
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
             {name}
           </h3>
-          <span className="px-3 py-1 text-xs font-medium rounded-full bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+          <span
+            className={`px-3 py-1 text-xs font-medium rounded-full ${categoryStyle}`}
+          >
             {categoryLabel}
           </span>
         </div>
