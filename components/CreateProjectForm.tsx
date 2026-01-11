@@ -43,8 +43,15 @@ export default function CreateProjectForm({
   const handleCreate = async () => {
     const { name, description, softCapEther, category, milestones } = formData;
 
-    if (!name || !description || !softCapEther || milestones.some((m) => !m)) {
-      return alert("Please fill in all fields.");
+    const softCapNum = Number(formData.softCapEther);
+    if (
+      !name ||
+      !description ||
+      !softCapEther ||
+      softCapNum <= 0 ||
+      milestones.some((m) => !m)
+    ) {
+      return alert("Please fill in all fields and set a positive target.");
     }
 
     const softCapWei = parseEther(softCapEther);
@@ -70,91 +77,145 @@ export default function CreateProjectForm({
   return (
     <>
       {showInputModal && (
-        <div
-          className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm bg-black/20"
-          onClick={onClose}
-        >
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center px-4">
           <div
-            className="bg-white dark:bg-gray-800 rounded-lg p-8 max-w-md w-full mx-4 shadow-xl cursor-pointer"
             onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-2xl bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden"
           >
-            <h3 className="text-lg font-semibold mb-4">Create new project</h3>
-            <div className="space-y-4">
-              <input
-                type="text"
-                placeholder="Name"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <textarea
-                placeholder="Description"
-                rows={4}
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <select
-                value={formData.category}
-                onChange={(e) =>
-                  setFormData({ ...formData, category: Number(e.target.value) })
-                }
-                className="w-full px-4 py-2 border rounded-lg"
-              >
-                {CATEGORIES.map((cat, idx) => (
-                  <option key={idx} value={idx}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
-
-              {formData.milestones.map((m, i) => (
-                <input
-                  key={i}
-                  type="text"
-                  placeholder={`Milestone ${i + 1}`}
-                  value={m}
-                  onChange={(e) => {
-                    const next = [...formData.milestones] as [
-                      string,
-                      string,
-                      string
-                    ];
-                    next[i] = e.target.value;
-                    setFormData({ ...formData, milestones: next });
-                  }}
-                  className="w-full px-4 py-2 border rounded-lg"
-                />
-              ))}
-
-              <input
-                type="number"
-                min={0}
-                step={0.0001}
-                placeholder="Target (ETH)"
-                value={formData.softCapEther}
-                onChange={(e) =>
-                  setFormData({ ...formData, softCapEther: e.target.value })
-                }
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+            {/* Header */}
+            <div className="px-8 py-6 border-b dark:border-gray-700 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+              <h2 className="text-2xl font-bold">Create New Project</h2>
             </div>
-            <div className="flex flex-col gap-3 mt-6">
-              <button
-                onClick={handleCreate}
-                className={`${baseButtonClass} bg-blue-600 hover:bg-blue-700 text-white w-full`}
-              >
-                Submit
-              </button>
+
+            {/* Content */}
+            <div className="p-8 space-y-8 max-h-[70vh] overflow-y-auto">
+              {/* Project Info */}
+              <section className="space-y-4">
+                <h3 className="font-semibold text-lg">1. Project Info</h3>
+                <input
+                  className="w-full p-3 rounded-lg border dark:border-gray-700 bg-gray-50 dark:bg-gray-800"
+                  placeholder="Project Name"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                />
+
+                <textarea
+                  rows={3}
+                  className="w-full p-3 rounded-lg border dark:border-gray-700 bg-gray-50 dark:bg-gray-800"
+                  placeholder="Describe what you are building..."
+                  value={formData.description}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
+                />
+              </section>
+
+              {/* Category */}
+              <section className="space-y-3">
+                <h3 className="font-semibold text-lg">2. Category</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {CATEGORIES.map((cat, i) => (
+                    <button
+                      key={cat}
+                      onClick={() => setFormData({ ...formData, category: i })}
+                      className={`p-3 rounded-xl border transition-all
+                      ${
+                        formData.category === i
+                          ? "bg-blue-600 text-white border-blue-600"
+                          : "hover:border-blue-400 dark:border-gray-700"
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              </section>
+
+              {/* Funding */}
+              <section className="space-y-4">
+                <h3 className="font-semibold text-lg">3. Funding Goal</h3>
+                <input
+                  type="number"
+                  step="0.0001"
+                  placeholder="Target in ETH"
+                  value={formData.softCapEther}
+                  min="0.000000000000000001"
+                  onChange={(e) => {
+                    const value = e.target.value;
+
+                    if (value === "") {
+                      setFormData({ ...formData, softCapEther: "" });
+                      return;
+                    }
+
+                    if (/^0*\.?\d*$/.test(value)) {
+                      setFormData({ ...formData, softCapEther: value });
+                    }
+                  }}
+                  className="w-full p-3 rounded-lg border dark:border-gray-700 bg-gray-50 dark:bg-gray-800"
+                />
+
+                {formData.softCapEther && (
+                  <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-950 flex items-center justify-between">
+                    <span className="text-gray-600 dark:text-gray-300 flex flex-col justify-center">
+                      Creator Bond (10%)
+                      <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        The bond will be returned if the project succeeds
+                      </span>
+                    </span>
+
+                    <span className="font-semibold text-2xl text-right">
+                      {formatEther(parseEther(formData.softCapEther) / 10n)} ETH
+                    </span>
+                  </div>
+                )}
+              </section>
+
+              {/* Milestones */}
+              <section className="space-y-4">
+                <h3 className="font-semibold text-lg">4. Milestones</h3>
+                {formData.milestones.map((m, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-3 p-3 rounded-xl border dark:border-gray-700"
+                  >
+                    <span className="text-sm text-gray-400">#{i + 1}</span>
+                    <input
+                      className="flex-1 bg-transparent outline-none"
+                      placeholder={`Describe what milestone ${
+                        i + 1
+                      } should achieve`}
+                      value={m}
+                      onChange={(e) => {
+                        const next = [...formData.milestones] as [
+                          string,
+                          string,
+                          string
+                        ];
+                        next[i] = e.target.value;
+                        setFormData({ ...formData, milestones: next });
+                      }}
+                    />
+                  </div>
+                ))}
+              </section>
+            </div>
+
+            {/* Footer */}
+            <div className="px-8 py-6 border-t dark:border-gray-700 flex gap-3">
               <button
                 onClick={onClose}
-                className={`${baseButtonClass} bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white w-full`}
+                className="flex-1 py-3 rounded-lg bg-gray-200 dark:bg-gray-800 hover:opacity-90 cursor-pointer"
               >
                 Cancel
+              </button>
+              <button
+                onClick={handleCreate}
+                className="flex-1 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold hover:opacity-90 cursor-pointer"
+              >
+                Deploy Project
               </button>
             </div>
           </div>
