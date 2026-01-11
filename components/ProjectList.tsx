@@ -28,27 +28,6 @@ export default function ProjectList({
   const { data: projectIds, isLoading, error } = useAllFundingProjects();
   const [projects, setProjects] = useState<Record<string, Project>>({});
 
-  if (isLoading)
-    return (
-      <div className="py-12 text-center text-gray-600 dark:text-gray-400">
-        Loading...
-      </div>
-    );
-
-  if (error)
-    return (
-      <div className="py-12 text-center text-red-600 dark:text-red-400">
-        ERROR: {error.message}
-      </div>
-    );
-
-  if (!projectIds || projectIds.length === 0)
-    return (
-      <div className="py-12 text-center text-gray-600 dark:text-gray-400">
-        No Funding Project
-      </div>
-    );
-
   const handleLoaded = (p: Project) => {
     setProjects((prev) => {
       const key = p.projectId.toString();
@@ -83,7 +62,26 @@ export default function ProjectList({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {projectIds.map((id) => (
+      {isLoading && (
+        <div className="py-12 text-center text-gray-600 dark:text-gray-400">
+          Loading...
+        </div>
+      )}
+
+      {error && (
+        <div className="py-12 text-center text-red-600 dark:text-red-400">
+          ERROR: {error.message}
+        </div>
+      )}
+
+      {!isLoading && !error && projectIds && projectIds.length === 0 && (
+        <div className="py-12 text-center text-gray-600 dark:text-gray-400">
+          No Funding Project
+        </div>
+      )}
+
+      {/* Project loaders */}
+      {projectIds?.map((id) => (
         <ProjectCardLoader
           key={id.toString()}
           projectId={id}
@@ -91,6 +89,7 @@ export default function ProjectList({
         />
       ))}
 
+      {/* Visible project cards */}
       {visible.map((p) => (
         <ProjectCard
           key={`card-${p.projectId.toString()}`}
