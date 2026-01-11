@@ -20,7 +20,7 @@ export default function TxModal({
   hash,
   errorMessage,
   children,
-  buttonClass = "px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow transform hover:scale-105 cursor-pointer",
+  buttonClass = "px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow transform hover: cursor-pointer",
 }: TxModalProps) {
   if (!isOpen) return null;
 
