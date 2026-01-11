@@ -3,7 +3,11 @@
 
 import { useEffect, useState, useRef } from "react";
 import TxModal from "@/components/TxModal";
-import { useSubmitMilestone } from "@/hooks/useContract";
+import {
+  useSubmitMilestone,
+  useProjectCore,
+  useMilestoneDescriptions,
+} from "@/hooks/useContract";
 import { uploadToIPFS } from "@/lib/ipfs";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -68,83 +72,119 @@ export default function SubmitMilestoneModal({
   };
 
   const baseButtonClass =
-    "px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow transform hover:scale-105 cursor-pointer";
+    "px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow transform hover:cursor-pointer";
+
+  const { data: projectCore } = useProjectCore(projectId);
+  const { data: milestoneDescriptions } = useMilestoneDescriptions(projectId);
+
+  const getCurrentMilestoneIndex = () => {
+    if (!projectCore) return 0;
+    const state = projectCore.state;
+    switch (state) {
+      case 2:
+        return 0;
+      case 5:
+        return 1;
+      case 8:
+        return 2;
+      default:
+        return 0;
+    }
+  };
+
+  const currentMilestoneIndex = getCurrentMilestoneIndex();
+  const currentMilestoneDescription = milestoneDescriptions
+    ? milestoneDescriptions[currentMilestoneIndex]
+    : "";
 
   return (
     <>
       {showInputModal && (
         <div
-          className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm bg-black/20"
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center px-4"
           onClick={onClose}
         >
           <div
-            className="bg-white dark:bg-gray-800 rounded-lg p-8 max-w-md w-full mx-4 shadow-xl"
+            className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 scale-90 opacity-0 animate-fadeIn"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
-              Submit Milestone Proof Image
-            </h3>
+            {/* Header */}
+            <div className="px-8 py-6 border-b dark:border-gray-700 bg-gradient-to-r from-green-600 to-green-700 text-white">
+              <h2 className="text-2xl font-bold">
+                Submit Milestone {currentMilestoneIndex + 1}
+              </h2>
+              <span className="text-gray-700 dark:text-gray-300 font-medium">
+                Ensure the image clearly shows milestone completion
+              </span>
+            </div>
 
-            {/* File selector */}
-            <label
-              htmlFor="milestone-file"
-              className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed
-                border-gray-300 dark:border-gray-600 rounded-lg
-                text-gray-600 dark:text-gray-300
-                cursor-pointer transition-all
-                hover:border-blue-500 hover:text-blue-600
-                hover:bg-blue-50 dark:hover:bg-gray-700"
-            >
-              Choose image file
-            </label>
-            <input
-              ref={fileInputRef}
-              id="milestone-file"
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
-            />
+            {/* Content */}
+            <div className="p-8 space-y-6">
+              {/* File selector */}
+              <label
+                htmlFor="milestone-file"
+                className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed
+              border-gray-300 dark:border-gray-600 rounded-lg
+              text-gray-600 dark:text-gray-300
+              cursor-pointer transition-all
+              hover:border-green-500 hover:text-green-600
+              hover:bg-green-50 dark:hover:bg-gray-700"
+              >
+                Choose image file
+              </label>
+              <input
+                ref={fileInputRef}
+                id="milestone-file"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => setFile(e.target.files?.[0] || null)}
+              />
 
-            {/* Image preview */}
-            {preview && (
-              <div className="relative mt-4">
-                <img
-                  src={preview}
-                  alt="Preview"
-                  className="w-full h-48 object-cover rounded-lg border border-gray-300 dark:border-gray-600"
-                />
-                <button
-                  onClick={() => {
-                    setFile(null);
-                    if (fileInputRef.current) {
-                      fileInputRef.current.value = "";
-                    }
-                  }}
-                  className="absolute top-2 right-2 bg-black/60 hover:bg-black text-white
+              {/* Image preview */}
+              {preview && (
+                <div className="relative mt-4">
+                  <img
+                    src={preview}
+                    alt="Preview"
+                    className="w-full h-48 object-cover rounded-lg border border-gray-300 dark:border-gray-600"
+                  />
+                  <button
+                    onClick={() => {
+                      setFile(null);
+                      if (fileInputRef.current) fileInputRef.current.value = "";
+                    }}
+                    className="absolute top-2 right-2 bg-black/60 hover:bg-black text-white
                  rounded-full w-8 h-8 flex items-center justify-center transition"
-                  title="Remove"
+                    title="Remove"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+              {/* Milestone Description */}
+              {currentMilestoneDescription && (
+                <div className="p-4 rounded-xl bg-green-50 dark:bg-green-950 text-sm text-gray-700 dark:text-gray-300">
+                  {currentMilestoneDescription}
+                </div>
+              )}
+
+              {/* Buttons */}
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={handleSubmit}
+                  disabled={uploading}
+                  className={`${baseButtonClass} bg-green-600 hover:bg-green-700 text-white w-full disabled:opacity-50`}
                 >
-                  ✕
+                  {uploading ? "Uploading..." : "Submit"}
+                </button>
+                <button
+                  onClick={onClose}
+                  className={`${baseButtonClass} bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white w-full`}
+                >
+                  Cancel
                 </button>
               </div>
-            )}
-
-            <div className="flex flex-col gap-3 mt-6">
-              <button
-                onClick={handleSubmit}
-                disabled={uploading}
-                className={`${baseButtonClass} bg-green-600 hover:bg-green-700 text-white w-full disabled:opacity-50`}
-              >
-                {uploading ? "Uploading..." : "Submit"}
-              </button>
-
-              <button
-                onClick={onClose}
-                className={`${baseButtonClass} bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white w-full`}
-              >
-                Cancel
-              </button>
             </div>
           </div>
         </div>
