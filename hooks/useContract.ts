@@ -216,15 +216,17 @@ export function useClaimableCreator() {
 }
 
 export function useClaimableOwner() {
-  const { address } = useAccount();
+  const { address } = useAccount(); 
   return useReadContract({
     address: CONTRACT_ADDRESS,
     abi: CONTRACT_ABI,
     functionName: "getClaimableOwner",
-    args: address ? [address] : undefined,
-    query: { enabled: !!address },
+    account: address, 
+    watch: true,        
+    enabled: !!address,
   });
 }
+
 
 export function useClaimInvestor() {
   const { writeContract, data: hash, isPending, error } = useWriteContract();
