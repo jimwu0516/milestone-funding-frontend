@@ -1,4 +1,3 @@
-// app/my-investments/page.tsx
 "use client";
 
 import { useEffect, useState, useRef } from "react";
@@ -39,7 +38,7 @@ export default function MyInvestmentsPage() {
   useEffect(() => {
     if (!investments || investments.length === 0) return;
 
-    const VOTING_STATES = [3, 6, 9]; // VotingRound1,2,3
+    const VOTING_STATES = [3, 6, 9];
 
     investments.forEach((inv) => {
       const prev = prevStatesRef.current[inv.projectId] ?? inv.state;
@@ -47,20 +46,16 @@ export default function MyInvestmentsPage() {
 
       if (prev !== current) {
         if (VOTING_STATES.includes(prev) && current === 11) {
-          // Completed = 11
           setStageMessage("This project Completed");
           setFilter("history");
           setShowStageModal(true);
-        } else if (
-          VOTING_STATES.includes(prev) &&
-          [5, 8].includes(current) // BuildingStage2,3
-        ) {
+        } else if (VOTING_STATES.includes(prev) && [5, 8].includes(current)) {
           setStageMessage("This project has been moved to next stage");
           setFilter("ongoing");
           setShowStageModal(true);
         } else if (
           VOTING_STATES.includes(prev) &&
-          [4, 7, 10].includes(current) // FailureRound1,2,3
+          [4, 7, 10].includes(current)
         ) {
           setStageMessage("This round did not pass, please claim your refund");
           setFilter("history");
@@ -85,11 +80,11 @@ export default function MyInvestmentsPage() {
     );
   }
 
-  // --- Filter definitions ---
+  // --- Filter states ---
   const FILTER_STATES = {
-    ongoing: [1, 2, 5, 8], // Funding, BuildingStage1/2/3
-    voting: [3, 6, 9], // VotingRound1/2/2
-    history: [0, 11, 4, 7, 10], // Cancelled, Completed, FailureRound1/2/3
+    ongoing: [1, 2, 5, 8],
+    voting: [3, 6, 9],
+    history: [0, 11, 4, 7, 10],
   };
 
   const filteredInvestments = investments.filter((inv) =>
@@ -104,6 +99,7 @@ export default function MyInvestmentsPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <Navbar />
+
       {showStageModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm bg-black/20">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl text-center">
@@ -120,34 +116,33 @@ export default function MyInvestmentsPage() {
         </div>
       )}
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 h-screen flex flex-col overflow-hidden">
         <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">
           My Investments
         </h1>
-
         <FilterTabs filter={filter} setFilter={setFilter} />
-
         {isLoading ? (
           <div className="text-gray-600 dark:text-gray-400 py-12">
             Loading...
           </div>
         ) : filteredInvestments.length > 0 ? (
-          <ProjectsTable
-            investments={filteredInvestments}
-            formatEth={formatEth}
-            setSelectedProject={setSelectedProject}
-            setSelectedMilestone={setSelectedMilestone}
-            setShowVoteModal={setShowVoteModal}
-            isVoting={filter === "voting"}
-            isOngoing={filter === "ongoing"}
-            userAddress={userAddress!}
-          />
+          <div className="flex-1 min-h-0">
+            <ProjectsTable
+              investments={filteredInvestments}
+              formatEth={formatEth}
+              setSelectedProject={setSelectedProject}
+              setSelectedMilestone={setSelectedMilestone}
+              setShowVoteModal={setShowVoteModal}
+              isVoting={filter === "voting"}
+              isOngoing={filter === "ongoing"}
+              userAddress={userAddress!}
+            />
+          </div>
         ) : (
           <div className="text-gray-600 dark:text-gray-400 py-12">
             No investments found.
           </div>
         )}
-
         {showVoteModal && selectedProject !== null && (
           <VoteModal
             projectId={selectedProject}
@@ -161,7 +156,7 @@ export default function MyInvestmentsPage() {
   );
 }
 
-// --- Filter Tabs ---
+/* ---------------- Filter Tabs ---------------- */
 function FilterTabs({
   filter,
   setFilter,
@@ -193,7 +188,7 @@ function FilterTabs({
   );
 }
 
-// --- Projects Table ---
+/* ---------------- Projects Table ---------------- */
 function ProjectsTable({
   investments,
   formatEth,
@@ -203,71 +198,65 @@ function ProjectsTable({
   isVoting,
   isOngoing,
   userAddress,
-}: {
-  investments: ReturnType<typeof useMyInvestments>["investments"];
-  formatEth: (amount: bigint | string) => string;
-  setSelectedProject: (id: bigint) => void;
-  setSelectedMilestone: (index: number) => void;
-  setShowVoteModal: (v: boolean) => void;
-  isVoting: boolean;
-  isOngoing: boolean;
-  userAddress: string;
-}) {
+}: any) {
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full border-collapse table-auto">
-        <thead>
-          <tr className="bg-gray-50 dark:bg-gray-700">
-            <th className="px-4 py-3 text-left text-gray-900 dark:text-white w-[30%]">
-              Title
-            </th>
-            {isOngoing && (
+      {/* tbody scroll container */}
+      <div className="overflow-y-auto max-h-[60vh] overscroll-contain">
+        <table className="min-w-full border-collapse table-auto">
+          <thead className="sticky top-0 bg-gray-50 dark:bg-gray-700 z-10">
+            <tr>
+              <th className="px-4 py-3 text-left text-gray-900 dark:text-white w-[30%]">
+                Title
+              </th>
+              {isOngoing && (
+                <th className="px-4 py-3 text-left text-gray-900 dark:text-white w-[15%]">
+                  Target
+                </th>
+              )}
               <th className="px-4 py-3 text-left text-gray-900 dark:text-white w-[15%]">
-                Target
+                Total Funded
               </th>
-            )}
-            <th className="px-4 py-3 text-left text-gray-900 dark:text-white w-[15%]">
-              Total Funded
-            </th>
-            <th className="px-4 py-3 text-left text-gray-900 dark:text-white w-[15%]">
-              My Investment
-            </th>
-            <th className="px-4 py-3 text-left text-gray-900 dark:text-white w-[15%]">
-              State
-            </th>
-            {isVoting && (
               <th className="px-4 py-3 text-left text-gray-900 dark:text-white w-[15%]">
-                Voting Status
+                My Investment
               </th>
-            )}
-            {isVoting && (
-              <th className="px-4 py-3 text-center text-gray-900 dark:text-white w-[10%]">
-                Action
+              <th className="px-4 py-3 text-left text-gray-900 dark:text-white w-[15%]">
+                State
               </th>
-            )}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-          {investments.map((inv) => (
-            <InvestmentRow
-              key={inv.projectId.toString()}
-              inv={inv}
-              formatEth={formatEth}
-              setSelectedProject={setSelectedProject}
-              setSelectedMilestone={setSelectedMilestone}
-              setShowVoteModal={setShowVoteModal}
-              isVoting={isVoting}
-              isOngoing={isOngoing}
-              userAddress={userAddress}
-            />
-          ))}
-        </tbody>
-      </table>
+              {isVoting && (
+                <th className="px-4 py-3 text-left text-gray-900 dark:text-white w-[15%]">
+                  Voting Status
+                </th>
+              )}
+              {isVoting && (
+                <th className="px-4 py-3 text-center text-gray-900 dark:text-white w-[10%]">
+                  Action
+                </th>
+              )}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+            {investments.map((inv: any) => (
+              <InvestmentRow
+                key={inv.projectId.toString()}
+                inv={inv}
+                formatEth={formatEth}
+                setSelectedProject={setSelectedProject}
+                setSelectedMilestone={setSelectedMilestone}
+                setShowVoteModal={setShowVoteModal}
+                isVoting={isVoting}
+                isOngoing={isOngoing}
+                userAddress={userAddress}
+              />
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
 
-// --- Investment Row ---
+/* ---------------- Investment Row ---------------- */
 function InvestmentRow({
   inv,
   formatEth,
