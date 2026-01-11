@@ -29,7 +29,7 @@ export default function Home() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm"
+                className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm hover:cursor-pointer"
               >
                 <option value="id">Sort by ID ↑</option>
                 <option value="remaining">Progress (high → low)</option>
@@ -42,7 +42,7 @@ export default function Home() {
                     e.target.value === "all" ? "all" : Number(e.target.value)
                   )
                 }
-                className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm"
+                className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm hover:cursor-pointer"
               >
                 <option value="all">All Categories</option>
                 <option value="0">Technology</option>
