@@ -155,7 +155,7 @@ export default function ProjectDetailPage() {
   const categoryLabel = CATEGORY_LABELS[category] ?? `Category ${category}`;
 
   const baseButtonClass =
-    "px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow transform hover:scale-105 cursor-pointer";
+    "px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow transform  cursor-pointer";
 
   const categoryStyle =
     CATEGORY_STYLES[category] ??
@@ -165,52 +165,58 @@ export default function ProjectDetailPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <Navbar />
 
-      {/* Input Modal */}
       {showInputModal && (
         <div
-          className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm bg-black/20"
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center px-4"
           onClick={() => setShowInputModal(false)}
         >
           <div
-            className="bg-white dark:bg-gray-800 rounded-lg p-8 max-w-md w-full mx-4 shadow-xl transform transition-all duration-300 scale-90 opacity-0 animate-fadeIn relative"
             onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 scale-90 opacity-0 animate-fadeIn"
           >
-            <h3 className="text-lg font-semibold mb-4">Invest (ETH)</h3>
-
-            <div className="relative mb-6">
-              <input
-                type="number"
-                min={0}
-                step="0.0001"
-                max={formatEth(remaining)}
-                value={fundAmount}
-                onChange={(e) => setFundAmount(e.target.value)}
-                placeholder={`MAX: ${formatEth(remaining)} ETH`}
-                className="w-full px-4 py-2 pr-16 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <button
-                type="button"
-                onClick={() => setFundAmount(formatEth(remaining))}
-                disabled={remaining === BigInt(0)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-blue-600 dark:text-blue-400 font-medium hover:underline disabled:opacity-50"
-              >
-                Max
-              </button>
+            <div className="px-8 py-6 border-b dark:border-gray-700 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+              <h2 className="text-2xl font-bold">Invest</h2>
+              <p className="text-sm opacity-80 mt-1">
+                Enter the amount of ETH you want to invest
+              </p>
             </div>
 
-            <div className="flex flex-col gap-3">
-              <button
-                onClick={handleFund}
-                className={`${baseButtonClass} bg-blue-600 hover:bg-blue-700 text-white w-full`}
-              >
-                Fund
-              </button>
-              <button
-                onClick={() => setShowInputModal(false)}
-                className={`${baseButtonClass} bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white w-full`}
-              >
-                Cancel
-              </button>
+            <div className="p-8 space-y-6">
+              <div className="relative">
+                <input
+                  type="number"
+                  min={0}
+                  step="0.0001"
+                  max={formatEth(remaining)}
+                  value={fundAmount}
+                  onChange={(e) => setFundAmount(e.target.value)}
+                  placeholder={`MAX: ${formatEth(remaining)} ETH`}
+                  className="w-full px-4 py-3 pr-20 border rounded-lg bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setFundAmount(formatEth(remaining))}
+                  disabled={remaining === BigInt(0)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-600 dark:text-blue-400 font-medium hover:underline disabled:opacity-50 cursor-pointer"
+                >
+                  Max
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={handleFund}
+                  className={`${baseButtonClass} bg-blue-600 hover:bg-blue-700 text-white w-full`}
+                >
+                  Fund
+                </button>
+                <button
+                  onClick={() => setShowInputModal(false)}
+                  className={`${baseButtonClass} bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white w-full`}
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         </div>
