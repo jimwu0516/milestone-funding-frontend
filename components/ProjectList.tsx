@@ -1,99 +1,155 @@
 //components/ProjectList.tsx
-
 "use client";
 
 import { useAllFundingProjects, useProjectCore } from "@/hooks/useContract";
 import ProjectCard from "./ProjectCard";
+import { useEffect, useMemo, useState } from "react";
 
-export default function ProjectList() {
+type Project = {
+  projectId: bigint;
+  creator: string;
+  name: string;
+  description: string;
+  category: number;
+  softCapWei: bigint;
+  totalFunded: bigint;
+  bond: bigint;
+  state: string;
+  progress: number;
+};
+
+export default function ProjectList({
+  sortBy,
+  category,
+}: {
+  sortBy: "id" | "remaining";
+  category: number | "all";
+}) {
   const { data: projectIds, isLoading, error } = useAllFundingProjects();
+  const [projects, setProjects] = useState<Record<string, Project>>({});
 
-  if (isLoading) {
+  if (isLoading)
     return (
-      <div className="flex justify-center items-center py-12">
-        <div className="text-gray-600 dark:text-gray-400">Loading...</div>
+      <div className="py-12 text-center text-gray-600 dark:text-gray-400">
+        Loading...
       </div>
     );
-  }
 
-  if (error) {
+  if (error)
     return (
-      <div className="flex justify-center items-center py-12">
-        <div className="text-red-600 dark:text-red-400">
-          ERROR: {error.message}
-        </div>
+      <div className="py-12 text-center text-red-600 dark:text-red-400">
+        ERROR: {error.message}
       </div>
     );
-  }
 
-  if (!projectIds || !Array.isArray(projectIds) || projectIds.length === 0) {
+  if (!projectIds || projectIds.length === 0)
     return (
-      <div className="flex justify-center items-center py-12">
-        <div className="text-gray-600 dark:text-gray-400">
-          NO Funding Porject
-        </div>
+      <div className="py-12 text-center text-gray-600 dark:text-gray-400">
+        No Funding Project
       </div>
     );
-  }
+
+  const handleLoaded = (p: Project) => {
+    setProjects((prev) => {
+      const key = p.projectId.toString();
+      const prevP = prev[key];
+      if (
+        prevP &&
+        prevP.progress === p.progress &&
+        prevP.totalFunded === p.totalFunded &&
+        prevP.softCapWei === p.softCapWei
+      ) {
+        return prev;
+      }
+      return { ...prev, [key]: p };
+    });
+  };
+
+  const visible = useMemo(() => {
+    let arr = Object.values(projects);
+
+    if (category !== "all") {
+      arr = arr.filter((p) => p.category === category);
+    }
+
+    if (sortBy === "id") {
+      arr.sort((a, b) => (a.projectId < b.projectId ? -1 : 1));
+    } else {
+      arr.sort((a, b) => b.progress - a.progress);
+    }
+
+    return arr;
+  }, [projects, sortBy, category]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {projectIds.map((projectId: bigint) => (
-        <ProjectCardLoader key={projectId.toString()} projectId={projectId} />
+      {projectIds.map((id) => (
+        <ProjectCardLoader
+          key={id.toString()}
+          projectId={id}
+          onLoaded={handleLoaded}
+        />
+      ))}
+
+      {visible.map((p) => (
+        <ProjectCard
+          key={`card-${p.projectId.toString()}`}
+          projectId={p.projectId}
+          name={p.name}
+          description={p.description}
+          creator={p.creator}
+          softCapWei={p.softCapWei}
+          totalFunded={p.totalFunded}
+          bond={p.bond}
+          state={p.state}
+          category={p.category}
+        />
       ))}
     </div>
   );
 }
 
-function ProjectCardLoader({ projectId }: { projectId: bigint }) {
-  const { data, isLoading, error } = useProjectCore(projectId);
+function ProjectCardLoader({
+  projectId,
+  onLoaded,
+}: {
+  projectId: bigint;
+  onLoaded: (p: Project) => void;
+}) {
+  const { data } = useProjectCore(projectId);
 
-  if (isLoading) {
-    return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-        <div className="animate-pulse">
-          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full mb-2"></div>
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (!data) return;
 
-  if (error || !data) {
-    return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-        <div className="text-red-600 dark:text-red-400 text-sm">
-          ERROR : When loading project {projectId.toString()}
-        </div>
-      </div>
-    );
-  }
+    const [
+      creator,
+      name,
+      description,
+      category,
+      softCapWei,
+      totalFunded,
+      bond,
+      state,
+    ] = data;
 
-  if (!Array.isArray(data) || data.length < 7) {
-    return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-        <div className="text-red-600 dark:text-red-400 text-sm">
-          Format error
-        </div>
-      </div>
-    );
-  }
+    const progress =
+      softCapWei > BigInt(0)
+        ? Number((totalFunded * BigInt(10000)) / softCapWei) / 100
+        : 0;
 
-  const [creator, name, description, category, softCapWei, totalFunded, bond, state] = data;
+    onLoaded({
+      projectId,
+      creator,
+      name,
+      description,
+      category,
+      softCapWei,
+      totalFunded,
+      bond,
+      state,
+      progress,
+    });
+  }, [data, projectId, onLoaded]);
 
-  return (
-    <ProjectCard
-      projectId={projectId}
-      name={name}
-      description={description}
-      creator={creator}
-      softCapWei={softCapWei}
-      totalFunded={totalFunded}
-      bond={bond}
-      state={state}
-      category={category}
-    />
-  );
+  return null;
 }
-
