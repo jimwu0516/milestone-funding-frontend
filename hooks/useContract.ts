@@ -6,6 +6,7 @@ import {
   useWriteContract,
   useWaitForTransactionReceipt,
   useAccount,
+  useReadContracts,
 } from "wagmi";
 import contractABI from "@/contracts/Milestonefunding.json";
 
@@ -314,4 +315,57 @@ export function useMilestoneDescriptions(projectId: bigint | undefined) {
     args: projectId !== undefined ? [projectId] : undefined,
     query: { enabled: projectId !== undefined },
   });
+}
+
+export function useProjectsByCreator(creator?: `0x${string}`) {
+  const { data: count } = useProjectCount();
+
+  const projectCalls =
+    count && creator
+      ? Array.from({ length: Number(count) }).map((_, i) => ({
+          address: CONTRACT_ADDRESS,
+          abi: CONTRACT_ABI,
+          functionName: "getProjectCore",
+          args: [BigInt(i)],
+        }))
+      : [];
+
+  const { data, isLoading } = useReadContracts({
+    contracts: projectCalls,
+    query: { enabled: !!creator && !!count },
+  });
+
+  const projects =
+    data
+      ?.map((res: any, i: number) => {
+        if (!res?.result) return null;
+        const [
+          projectCreator,
+          name,
+          description,
+          category,
+          softCapWei,
+          totalFunded,
+          bond,
+          state,
+        ] = res.result;
+
+        if (projectCreator.toLowerCase() !== creator?.toLowerCase())
+          return null;
+
+        return {
+          projectId: BigInt(i),
+          creator: projectCreator,
+          name,
+          description,
+          category,
+          softCapWei,
+          totalFunded,
+          bond,
+          state,
+        };
+      })
+      .filter(Boolean) ?? [];
+
+  return { projects, isLoading };
 }
