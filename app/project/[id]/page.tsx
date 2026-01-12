@@ -301,9 +301,13 @@ export default function ProjectDetailPage() {
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
               Creator
             </h2>
-            <p className="text-gray-700 dark:text-gray-300 font-mono break-all">
+            <p
+              onClick={() => router.push(`/creator/${creator}`)}
+              className="text-blue-600 dark:text-blue-400 font-mono break-all cursor-pointer hover:underline"
+            >
               {creator}
             </p>
+
           </div>
 
           {/* Milestones */}
