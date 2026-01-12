@@ -12,6 +12,7 @@ import {
 } from "@/hooks/useContract";
 import { getProjectProgress } from "@/utils/projectProgress";
 import { PROJECT_TIMELINE, ProjectState } from "@/constants/projectTimeline";
+import ProjectPreviewModal from "@/components/ProjectPreviewModal";
 
 export default function MyInvestmentsPage() {
   const { isConnected, address: userAddress } = useAccount();
@@ -32,6 +33,7 @@ export default function MyInvestmentsPage() {
   const [showVoteModal, setShowVoteModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState<bigint | null>(null);
   const [selectedMilestone, setSelectedMilestone] = useState<number>(0);
+  const [previewProject, setPreviewProject] = useState<any | null>(null);
 
   useEffect(() => setMounted(true), []);
 
@@ -133,6 +135,7 @@ export default function MyInvestmentsPage() {
               setSelectedProject={setSelectedProject}
               setSelectedMilestone={setSelectedMilestone}
               setShowVoteModal={setShowVoteModal}
+              setPreviewProject={setPreviewProject}
               isVoting={filter === "voting"}
               isOngoing={filter === "ongoing"}
               userAddress={userAddress!}
@@ -149,6 +152,13 @@ export default function MyInvestmentsPage() {
             milestoneIndex={selectedMilestone}
             onClose={() => setShowVoteModal(false)}
             onSuccess={() => refetchInvestments()}
+          />
+        )}
+
+        {previewProject && (
+          <ProjectPreviewModal
+            project={previewProject}
+            onClose={() => setPreviewProject(null)}
           />
         )}
       </main>
@@ -195,6 +205,7 @@ function ProjectsTable({
   setSelectedProject,
   setSelectedMilestone,
   setShowVoteModal,
+  setPreviewProject,
   isVoting,
   isOngoing,
   userAddress,
@@ -207,7 +218,7 @@ function ProjectsTable({
             <thead className="sticky top-0 z-10 bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur border-b border-gray-200 dark:border-gray-700">
               <tr>
                 <th className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[30%]">
-                  Project
+                  Project/Creator
                 </th>
 
                 {isOngoing && (
@@ -257,6 +268,7 @@ function ProjectsTable({
                   setSelectedProject={setSelectedProject}
                   setSelectedMilestone={setSelectedMilestone}
                   setShowVoteModal={setShowVoteModal}
+                  setPreviewProject={setPreviewProject}
                   isVoting={isVoting}
                   isOngoing={isOngoing}
                   userAddress={userAddress}
@@ -277,6 +289,7 @@ function InvestmentRow({
   setSelectedProject,
   setSelectedMilestone,
   setShowVoteModal,
+  setPreviewProject,
   isVoting,
   isOngoing,
   userAddress,
@@ -312,7 +325,10 @@ function InvestmentRow({
   const noPercent = sum > 0 ? (no / sum) * 100 : 0;
 
   return (
-    <tr className="group hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+    <tr
+      className="group hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors "
+      onClick={() => setPreviewProject(inv)}
+    >
       {/* Project */}
       <td className="px-5 py-4">
         <div className="flex flex-col">
@@ -320,7 +336,7 @@ function InvestmentRow({
             {inv.name}
           </span>
           <span className="text-xs text-gray-500 dark:text-gray-400">
-            #{inv.projectId.toString()}
+            {inv.creator}
           </span>
         </div>
       </td>
@@ -412,7 +428,8 @@ function InvestmentRow({
             )
           ) : (
             <button
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 setSelectedProject(inv.projectId);
                 setSelectedMilestone(milestoneIndex);
                 setShowVoteModal(true);
