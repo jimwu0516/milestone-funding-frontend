@@ -362,7 +362,12 @@ export default function ProjectDetailPage() {
                       className="hover:bg-gray-50 dark:hover:bg-gray-700"
                     >
                       <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300 font-mono break-all">
-                        {investor}
+                                    <p
+              onClick={() => router.push(`/investor/${investor}`)}
+              className="text-blue-600 dark:text-blue-400 font-mono break-all cursor-pointer hover:underline"
+            >
+              {investor}
+            </p>
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-900 dark:text-white font-semibold">
                         {formatEth(investments[1][index])} ETH
