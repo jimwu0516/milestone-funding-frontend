@@ -49,6 +49,7 @@ export default function ProjectPreviewModal({
     CATEGORY_STYLES[categoryIndex] ?? "bg-blue-100 text-blue-800";
 
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [loadingImage, setLoadingImage] = useState(false);
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center px-4">
@@ -109,12 +110,13 @@ export default function ProjectPreviewModal({
                     Hash:{" "}
                     {hash ? (
                       <button
-                        onClick={() =>
+                        onClick={() => {
+                          setLoadingImage(true);
                           setPreviewImage(
                             `https://gateway.pinata.cloud/ipfs/${hash}`
-                          )
-                        }
-                        className="underline text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200"
+                          );
+                        }}
+                        className="underline text-blue-600 dark:text-blue-400 hover:text-blue-800 cursor-pointer dark:hover:text-blue-200"
                       >
                         {hash}
                       </button>
@@ -134,14 +136,26 @@ export default function ProjectPreviewModal({
             onClick={() => setPreviewImage(null)}
           >
             <div
-              className="max-w-xl w-full p-4 bg-white dark:bg-gray-900 rounded-xl shadow-2xl"
+              className="max-w-xl w-full p-4 bg-white dark:bg-gray-900 rounded-xl shadow-2xl flex flex-col items-center"
               onClick={(e) => e.stopPropagation()}
             >
+              {/* Loading 狀態 */}
+              {loadingImage && (
+                <div className="text-gray-700 dark:text-gray-300 font-medium py-20">
+                  Loading...
+                </div>
+              )}
+
               <img
                 src={previewImage}
                 alt="Milestone Preview"
-                className="w-full h-auto rounded-lg"
+                className={`w-full h-auto rounded-lg transition-opacity duration-300 ${
+                  loadingImage ? "opacity-0" : "opacity-100"
+                }`}
+                onLoad={() => setLoadingImage(false)}
+                onError={() => setLoadingImage(false)}
               />
+
               <button
                 onClick={() => setPreviewImage(null)}
                 className="mt-4 w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 hover:cursor-pointer"
