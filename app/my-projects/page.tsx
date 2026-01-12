@@ -328,14 +328,17 @@ function ProjectRow({
         {filter === "active" && (
           <td className="px-5 py-4 text-center">
             <div className="flex items-center justify-center gap-2">
-              {state === 1 && <CancelProjectButton projectId={projectId} />}
-              {(state === 2 || state === 5 || state === 8) && (
+              {state === 1 ? (
+                <CancelProjectButton projectId={projectId} />
+              ) : state === 2 || state === 5 || state === 8 ? (
                 <button
                   onClick={() => setShowMilestoneModal(true)}
                   className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-semibold shadow-sm hover:scale-105 transition-all cursor-pointer"
                 >
                   Submit
                 </button>
+              ) : (
+                <span>-</span>
               )}
             </div>
 
