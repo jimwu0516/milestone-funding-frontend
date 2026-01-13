@@ -6,6 +6,10 @@ import { parseEther, formatEther } from "viem";
 import { useQueryClient } from "@tanstack/react-query";
 import TxModal from "./TxModal";
 import { useCreateProject } from "@/hooks/useContract";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { useAccount } from "wagmi";
+import { useRouter } from "next/navigation";
+
 
 interface CreateProjectFormProps {
   onClose: () => void;
@@ -21,6 +25,7 @@ export default function CreateProjectForm({
   const queryClient = useQueryClient();
   const [showInputModal, setShowInputModal] = useState(true);
   const [showTxModal, setShowTxModal] = useState(false);
+  const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -40,7 +45,15 @@ export default function CreateProjectForm({
     "Community",
   ] as const;
 
+  const { openConnectModal } = useConnectModal();
+  const { isConnected } = useAccount();
+
   const handleCreate = async () => {
+    if (!isConnected) {
+      if (openConnectModal) openConnectModal();
+      return;
+    }
+
     const { name, description, softCapEther, category, milestones } = formData;
 
     const softCapNum = Number(formData.softCapEther);
@@ -67,6 +80,7 @@ export default function CreateProjectForm({
     setShowTxModal(false);
     if (isSuccess) {
       queryClient.invalidateQueries({ queryKey: ["readContract"] });
+      router.push("/my-projects?filter=active");
       onSuccess();
     } else onClose();
   };
