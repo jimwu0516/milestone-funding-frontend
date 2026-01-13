@@ -10,7 +10,6 @@ import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
 import { useRouter } from "next/navigation";
 
-
 interface CreateProjectFormProps {
   onClose: () => void;
   onSuccess: () => void;
@@ -97,7 +96,7 @@ export default function CreateProjectForm({
             className="w-full max-w-2xl bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden"
           >
             {/* Header */}
-            <div className="px-8 py-6 border-b dark:border-gray-700 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+            <div className="px-8 py-6 border-b bg-gradient-to-r from-blue-600 to-purple-600  dark:border-gray-700 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
               <h2 className="text-2xl font-bold">Create New Project</h2>
             </div>
 
