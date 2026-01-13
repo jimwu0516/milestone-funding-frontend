@@ -23,9 +23,8 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans">
       <Navbar />
 
-      {/* Hero */}
-      <section className="relative overflow-hidden border-b border-gray-200 dark:border-gray-800">
-        <div className="max-w-6xl mx-auto px-6 py-24 text-center relative">
+      <section className="relative overflow-hidden border-b border-gray-200  dark:border-gray-800">
+        <div className="max-w-6xl mx-auto px-6 py-24 text-center relative mt-20">
           <div className="absolute inset-0 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 opacity-10 blur-3xl -z-10 animate-pulse-slow"></div>
           <h1 className="text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-600">
             Milestone Funding
@@ -43,7 +42,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* What it is */}
       <section className="max-w-6xl mx-auto px-6 py-20 grid md:grid-cols-2 gap-12">
         <div>
           <h2 className="text-3xl font-semibold text-gradient bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-pink-500">
@@ -73,7 +71,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* How it works */}
       <section className="bg-gray-100 dark:bg-gray-950 py-20">
         <div className="max-w-6xl mx-auto px-6">
           <h2 className="text-3xl font-semibold text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500">
@@ -104,7 +101,7 @@ export default function Home() {
               },
             ].map((item, i) => (
               <div key={i} className={`${highlightCardClass}`}>
-                <div className="w-12 h-12 mb-4 flex items-center justify-center bg-gradient-to-r from-purple-500 to-blue-500 rounded-full text-white text-lg">
+                <div className="w-12 h-12 mb-4 flex items-center justify-center bg-gradient-to-r from-purple-500 to-blue-500 rounded-full text-white text-3xl">
                   {item.icon}
                 </div>
                 <h3 className="font-semibold text-lg">{item.title}</h3>
@@ -117,7 +114,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Project Highlights + Create Project */}
       <section className="max-w-6xl mx-auto px-6 py-20">
         <h2 className="text-3xl font-semibold text-center bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-pink-500">
           Why Build on Milestone Funding?
@@ -146,7 +142,7 @@ export default function Home() {
             },
           ].map((item, i) => (
             <div key={i} className={highlightCardClass}>
-              <div className="w-12 h-12 mb-4 flex items-center justify-center bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-white text-lg">
+              <div className="w-12 h-12 mb-4 flex items-center justify-center bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-white text-3xl">
                 {item.icon}
               </div>
               <h3 className="font-semibold text-lg">{item.title}</h3>
@@ -167,7 +163,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Governance / Failure */}
       <section className="max-w-6xl mx-auto px-6 py-20 grid md:grid-cols-2 gap-12">
         <div>
           <h2 className="text-3xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-pink-500">
@@ -196,7 +191,6 @@ export default function Home() {
 
       <FAQAccordion />
 
-      {/* Footer */}
       <footer className="border-t border-gray-200 dark:border-gray-800 py-12 text-center space-y-4">
         <div className="flex flex-col md:flex-row justify-center items-center gap-4">
           <a
