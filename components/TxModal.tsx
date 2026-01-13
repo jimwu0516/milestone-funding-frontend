@@ -13,6 +13,8 @@ type TxModalProps = {
   buttonClass?: string;
 };
 
+const ETHERSCAN_TX_BASE = process.env.NEXT_PUBLIC_ETHERSCAN_TX_BASE;
+
 export default function TxModal({
   isOpen,
   onClose,
@@ -45,9 +47,16 @@ export default function TxModal({
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-4">Submitted</p>
             {hash && (
-              <p className="text-xs text-gray-500 dark:text-gray-400 font-mono break-all">
+              <a
+                href={`${ETHERSCAN_TX_BASE}/${hash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs font-mono text-blue-600 dark:text-blue-400 hover:underline"
+                title="View on Etherscan"
+              >
                 {hash.slice(0, 10)}...{hash.slice(-8)}
-              </p>
+                <span className="text-[10px]">↗</span>
+              </a>
             )}
           </>
         )}
