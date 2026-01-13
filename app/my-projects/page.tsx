@@ -16,9 +16,11 @@ import {
   useProjectCore,
   useCreateProject,
   useCancelProject,
+  useProjectMeta,
 } from "@/hooks/useContract";
 import { getProjectProgress } from "@/utils/projectProgress";
 import { PROJECT_TIMELINE } from "@/constants/projectTimeline";
+import ProjectPreviewModal from "@/components/ProjectPreviewModal";
 
 export default function MyProjectsPage() {
   const { address, isConnected } = useAccount();
@@ -27,6 +29,7 @@ export default function MyProjectsPage() {
   const [filter, setFilter] = useState<"active" | "inactive">("active");
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [previewProject, setPreviewProject] = useState<any | null>(null);
 
   useEffect(() => setMounted(true), []);
   if (!mounted) return null;
@@ -47,6 +50,13 @@ export default function MyProjectsPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <Navbar />
+      {previewProject && (
+        <ProjectPreviewModal
+          project={previewProject}
+          onClose={() => setPreviewProject(null)}
+        />
+      )}
+
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24 overflow-hidden">
         <Header setShowCreateForm={setShowCreateForm} />
         <FilterTabs filter={filter} setFilter={setFilter} />
@@ -68,6 +78,7 @@ export default function MyProjectsPage() {
             projectIds={projectIds}
             userAddress={address!}
             filter={filter}
+            setPreviewProject={setPreviewProject}
           />
         ) : (
           <EmptyState />
@@ -148,10 +159,12 @@ function ProjectsTable({
   projectIds,
   userAddress,
   filter,
+  setPreviewProject,
 }: {
   projectIds: bigint[];
   userAddress: string;
   filter: "active" | "inactive";
+  setPreviewProject: (p: any) => void;
 }) {
   return (
     <div className="overflow-x-auto rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
@@ -194,6 +207,7 @@ function ProjectsTable({
                 projectId={id}
                 userAddress={userAddress}
                 filter={filter}
+                setPreviewProject={setPreviewProject}
               />
             ))}
           </tbody>
@@ -207,10 +221,12 @@ function ProjectRow({
   projectId,
   userAddress,
   filter,
+  setPreviewProject,
 }: {
   projectId: bigint;
   userAddress: string;
   filter: "active" | "inactive";
+  setPreviewProject: (p: any) => void;
 }) {
   const { data, isLoading, error } = useProjectCore(projectId);
   const queryClient = useQueryClient();
@@ -236,16 +252,16 @@ function ProjectRow({
     );
   if (error || !data) return null;
 
-  const [creator, name, , , softCapWei, totalFunded, , state] = data as [
-    string,
-    string,
-    string,
-    number,
-    bigint,
-    bigint,
-    bigint,
-    number
-  ];
+  const [
+    creator,
+    name,
+    description,
+    category,
+    softCapWei,
+    totalFunded,
+    bond,
+    state,
+  ] = data as [string, string, string, number, bigint, bigint, bigint, number];
 
   if (creator.toLowerCase() !== userAddress.toLowerCase()) return null;
 
@@ -282,7 +298,21 @@ function ProjectRow({
 
   return (
     <>
-      <tr className="group hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+      <tr
+        className="group hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+        onClick={() =>
+          setPreviewProject({
+            projectId,
+            creator,
+            name,
+            description,
+            category,
+            softCapWei,
+            totalFunded,
+            state,
+          })
+        }
+      >
         {/* Project */}
         <td className="px-5 py-4">
           <div className="flex flex-col">
@@ -329,10 +359,15 @@ function ProjectRow({
           <td className="px-5 py-4 text-center">
             <div className="flex items-center justify-center gap-2">
               {state === 1 ? (
-                <CancelProjectButton projectId={projectId} />
+                <div onClick={(e) => e.stopPropagation()}>
+                  <CancelProjectButton projectId={projectId} />
+                </div>
               ) : state === 2 || state === 5 || state === 8 ? (
                 <button
-                  onClick={() => setShowMilestoneModal(true)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowMilestoneModal(true);
+                  }}
                   className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-semibold shadow-sm hover:scale-105 transition-all cursor-pointer"
                 >
                   Submit
