@@ -22,18 +22,15 @@ const faqData: FAQCategory[] = [
           "Yes, but only while the project is still in the Funding stage. If no one has funded your project yet, your bond is forfeited to the platform owner. If the project has already received funding, your bond is split: 50% goes to the platform owner, and 50% is distributed to investors proportionally along with their refunds. All investors always get back their full invested amount.",
       },
       {
-        question: "What happens if a milestone does NOT pass?",
+        question:
+          "How do I submit a milestone after finishing a building stage?",
         answer:
-          "If a milestone is rejected by investors, the project immediately enters a Failure state. All remaining unreleased funds are automatically refunded to investors, and the creator’s bond is slashed and sent to the platform owner. The creator will not receive any further payments for this project.",
+          "When your project is in a Building stage, go to the 'My Project' page and click 'Submit Milestone'. You can upload a photo as proof of your completed work. The file is uploaded to IPFS and its CID (hash) is stored on-chain. Once submitted, the project automatically moves into a Voting Round where investors will review and vote on the milestone.",
       },
       {
         question: "When do I get paid?",
         answer:
           "Funds are released based on milestone voting: 20% for Milestone 1, 30% for Milestone 2, 50% for Milestone 3. If all milestones pass, bond is returned.",
-      },
-      {
-        question: "How do I claim my funds?",
-        answer: "Go to claim fund page",
       },
     ],
   },
@@ -54,15 +51,6 @@ const faqData: FAQCategory[] = [
         question: "How are votes finalized?",
         answer:
           "Voting requires ≥70% total weight participation. ≥40% No votes automatically fail the milestone. Yes passes if exceeding remaining possible votes.",
-      },
-      {
-        question: "What happens if a milestone fails?",
-        answer:
-          "Investors receive a proportional refund of remaining unclaimed funds, and the creator’s bond goes to the platform owner.",
-      },
-      {
-        question: "How do I claim my funds?",
-        answer: "Go to claim fund page",
       },
     ],
   },
