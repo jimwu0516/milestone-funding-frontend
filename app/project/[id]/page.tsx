@@ -26,14 +26,14 @@ const CATEGORY_LABELS = [
 ];
 
 const CATEGORY_STYLES: Record<number, string> = {
-  0: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200",
-  1: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
-  2: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
-  3: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
-  4: "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200",
-  5: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
-  6: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-  7: "bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200",
+  0: "bg-indigo-800 text-indigo-200",
+  1: "bg-orange-800 text-orange-200",
+  2: "bg-pink-800 text-pink-200",
+  3: "bg-emerald-800 text-emerald-200",
+  4: "bg-teal-800 text-teal-200",
+  5: "bg-purple-800 text-purple-200",
+  6: "bg-yellow-800 text-yellow-900",
+  7: "bg-rose-800 text-rose-200",
 };
 
 export default function ProjectDetailPage() {
@@ -81,16 +81,12 @@ export default function ProjectDetailPage() {
 
   useEffect(() => {
     if (!projectCore) return;
-
     const currentIndex = Number(projectCore[7]);
     const currentState = states[currentIndex];
-
     const prevIndex = prevState !== null ? states.indexOf(prevState) : null;
-
     if (prevState === "Funding" && currentState === "BuildingStage1") {
       setShowBuildingModal(true);
     }
-
     setPrevState(currentState);
   }, [projectCore]);
 
@@ -113,7 +109,7 @@ export default function ProjectDetailPage() {
 
   const formatEth = (amount: bigint | string) =>
     parseFloat(typeof amount === "bigint" ? formatEther(amount) : amount)
-      .toFixed(8)
+      .toFixed(4)
       .replace(/\.?0+$/, "");
 
   const handleFundClick = () => {
@@ -155,26 +151,26 @@ export default function ProjectDetailPage() {
   const categoryLabel = CATEGORY_LABELS[category] ?? `Category ${category}`;
 
   const baseButtonClass =
-    "px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow transform  cursor-pointer";
+    "px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-lg transform hover:cursor-pointer";
 
   const categoryStyle =
-    CATEGORY_STYLES[category] ??
-    "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200";
+    CATEGORY_STYLES[category] ?? "bg-gray-800 text-gray-200";
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="min-h-screen bg-gray-900 text-white">
       <Navbar />
 
+      {/* Input Modal */}
       {showInputModal && (
         <div
-          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center px-4"
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-md flex items-center justify-center px-4"
           onClick={() => setShowInputModal(false)}
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 scale-90 opacity-0 animate-fadeIn"
+            className="w-full max-w-md bg-gray-850 rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 scale-90 animate-fadeIn"
           >
-            <div className="px-8 py-6 border-b dark:border-gray-700 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+            <div className="px-8 py-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
               <h2 className="text-2xl font-bold">Invest</h2>
               <p className="text-sm opacity-80 mt-1">
                 Enter the amount of ETH you want to invest
@@ -191,13 +187,13 @@ export default function ProjectDetailPage() {
                   value={fundAmount}
                   onChange={(e) => setFundAmount(e.target.value)}
                   placeholder={`MAX: ${formatEth(remaining)} ETH`}
-                  className="w-full px-4 py-3 pr-20 border rounded-lg bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 pr-20 border rounded-lg bg-gray-950 border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <button
                   type="button"
                   onClick={() => setFundAmount(formatEth(remaining))}
                   disabled={remaining === BigInt(0)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-600 dark:text-blue-400 font-medium hover:underline disabled:opacity-50 cursor-pointer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-400 font-medium hover:underline disabled:opacity-50"
                 >
                   Max
                 </button>
@@ -206,13 +202,13 @@ export default function ProjectDetailPage() {
               <div className="flex flex-col gap-3">
                 <button
                   onClick={handleFund}
-                  className={`${baseButtonClass} bg-blue-600 hover:bg-blue-700 text-white w-full`}
+                  className={`${baseButtonClass} bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white w-full`}
                 >
                   Fund
                 </button>
                 <button
                   onClick={() => setShowInputModal(false)}
-                  className={`${baseButtonClass} bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white w-full`}
+                  className={`${baseButtonClass} bg-gray-800 hover:bg-gray-700 text-white w-full`}
                 >
                   Cancel
                 </button>
@@ -239,30 +235,31 @@ export default function ProjectDetailPage() {
         buttonClass={baseButtonClass}
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24 space-y-6">
+        {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={() => router.back()}
-            className="px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer"
+            className="px-4 py-2 rounded-lg font-medium hover:text-blue-400 transition"
           >
             ← Back
           </button>
 
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white text-center flex-1">
-            {name}
-          </h1>
+          <h1 className="text-4xl font-bold text-center flex-1">{name}</h1>
+
           <button
             onClick={handleFundClick}
-            className={`${baseButtonClass} bg-blue-600 hover:bg-blue-700 text-white`}
+            className={`${baseButtonClass} bg-gradient-to-r from-blue-600 to-purple-600 hover:scale-105 from-blue-700 hover:to-purple-700 text-white`}
           >
             Fund
           </button>
         </div>
 
+        {/* Progress Bar */}
         <div className="mb-6">
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 mb-2">
+          <div className="w-full bg-gray-800 rounded-full h-4 mb-2 overflow-hidden">
             <div
-              className="bg-blue-600 dark:bg-blue-500 h-4 rounded-full transition-all"
+              className="h-4 rounded-full bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 transition-all animate-gradient-x"
               style={{
                 width: `${
                   softCapWei > BigInt(0)
@@ -272,7 +269,7 @@ export default function ProjectDetailPage() {
               }}
             />
           </div>
-          <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+          <div className="flex justify-between text-xs text-gray-400 font-mono">
             <span>Total Funded</span>
             <span>
               {formatEth(totalFunded)} / {formatEth(softCapWei)} ETH
@@ -281,56 +278,46 @@ export default function ProjectDetailPage() {
         </div>
 
         {/* About + Milestones */}
-        <div className="flex flex-col md:flex-row gap-6 mb-8">
+        <div className="flex flex-col md:flex-row gap-6">
           {/* About */}
-          <div className="flex-1 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 break-words relative">
-            {/* Category */}
+          <div className="flex-1 bg-gray-850 rounded-xl border border-gray-700 p-6 relative shadow-lg">
             <span
               className={`absolute top-4 right-4 rounded-full px-2 py-1 text-xs font-semibold ${categoryStyle}`}
             >
               {categoryLabel}
             </span>
 
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
-              About this project
-            </h2>
-            <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap mb-4">
+            <h2 className="text-xl font-semibold mb-3">About this project</h2>
+            <p className="text-gray-300 whitespace-pre-wrap mb-4">
               {description}
             </p>
 
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
-              Creator
-            </h2>
+            <h2 className="text-xl font-semibold mb-3">Creator</h2>
             <p
               onClick={() => router.push(`/creator/${creator}`)}
-              className="text-blue-600 dark:text-blue-400 font-mono break-all cursor-pointer hover:underline"
+              className="text-blue-400 font-mono break-all cursor-pointer hover:underline"
             >
               {creator}
             </p>
-
           </div>
 
           {/* Milestones */}
-          <div className="flex-1 flex gap-4">
+          <div className="flex-1 flex gap-4 overflow-x-auto">
             {milestonesLoading ? (
-              <div className="flex-1 flex items-center justify-center text-gray-500 dark:text-gray-400">
+              <div className="flex-1 flex items-center justify-center text-gray-400">
                 Loading milestones...
               </div>
             ) : (
               milestoneDescriptions?.map((desc, idx) => (
                 <div
                   key={idx}
-                  className="flex-1 bg-gray-50 dark:bg-gray-700 rounded-lg p-6 flex flex-col justify-start items-center text-center"
-                  style={{ minHeight: "100%" }}
+                  className="flex-1 min-w-[180px] bg-gray-800 rounded-xl p-6 flex flex-col justify-center items-center text-center shadow-md"
                 >
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                  <div className="text-sm text-gray-400 mb-4">
                     Milestone {idx + 1}
                   </div>
-
-                  <div className="flex-1 flex items-center justify-center">
-                    <div className="text-base font-semibold text-gray-900 dark:text-white">
-                      {desc}
-                    </div>
+                  <div className="text-base font-semibold text-white">
+                    {desc}
                   </div>
                 </div>
               ))
@@ -338,38 +325,32 @@ export default function ProjectDetailPage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-            Investors
-          </h2>
+        {/* Investors */}
+        <div className="bg-gray-850 rounded-xl border border-gray-700 p-6 shadow-lg">
+          <h2 className="text-xl font-semibold mb-4">Investors</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-left">
-              <thead className="bg-gray-50 dark:bg-gray-700">
+              <thead className="bg-gray-800">
                 <tr>
-                  <th className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
+                  <th className="px-4 py-3 text-sm font-medium text-white">
                     Address
                   </th>
-                  <th className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
+                  <th className="px-4 py-3 text-sm font-medium text-white">
                     Amount
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              <tbody className="divide-y divide-gray-700">
                 {investments && investments[0]?.length > 0 ? (
                   investments[0].map((investor, index) => (
-                    <tr
-                      key={investor}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-700"
-                    >
-                      <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300 font-mono break-all">
-                                    <p
-              onClick={() => router.push(`/investor/${investor}`)}
-              className="text-blue-600 dark:text-blue-400 font-mono break-all cursor-pointer hover:underline"
-            >
-              {investor}
-            </p>
+                    <tr key={investor} className="hover:bg-gray-700 transition">
+                      <td
+                        className="px-4 py-3 text-sm font-mono break-all text-blue-400 cursor-pointer hover:underline"
+                        onClick={() => router.push(`/investor/${investor}`)}
+                      >
+                        {investor}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-900 dark:text-white font-semibold">
+                      <td className="px-4 py-3 text-sm font-semibold text-white">
                         {formatEth(investments[1][index])} ETH
                       </td>
                     </tr>
@@ -378,7 +359,7 @@ export default function ProjectDetailPage() {
                   <tr>
                     <td
                       colSpan={2}
-                      className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center"
+                      className="px-4 py-3 text-sm text-gray-400 text-center"
                     >
                       No investor yet
                     </td>
@@ -389,21 +370,20 @@ export default function ProjectDetailPage() {
           </div>
         </div>
 
+        {/* Building Modal */}
         {showBuildingModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 text-center max-w-sm w-full shadow-xl">
-              <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">
-                🎉 Project Started
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
-                This project start building.
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md">
+            <div className="bg-gray-850 rounded-xl p-6 text-center max-w-sm w-full shadow-2xl">
+              <h3 className="text-xl font-semibold mb-3">🎉 Project Started</h3>
+              <p className="text-gray-400 mb-6">
+                This project has started building.
               </p>
               <button
                 onClick={() => {
                   setShowBuildingModal(false);
                   router.push("/my-investments");
                 }}
-                className={`${baseButtonClass} bg-blue-600 hover:bg-blue-700 text-white w-full`}
+                className={`${baseButtonClass} bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white w-full`}
               >
                 Go to My Investments
               </button>

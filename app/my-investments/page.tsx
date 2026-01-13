@@ -1,3 +1,4 @@
+// app/my-investments/page.tsx
 "use client";
 
 import { useEffect, useState, useRef } from "react";
@@ -11,7 +12,7 @@ import {
   useMyVotes,
 } from "@/hooks/useContract";
 import { getProjectProgress } from "@/utils/projectProgress";
-import { PROJECT_TIMELINE, ProjectState } from "@/constants/projectTimeline";
+import { PROJECT_TIMELINE } from "@/constants/projectTimeline";
 import ProjectPreviewModal from "@/components/ProjectPreviewModal";
 
 export default function MyInvestmentsPage() {
@@ -82,7 +83,6 @@ export default function MyInvestmentsPage() {
     );
   }
 
-  // --- Filter states ---
   const FILTER_STATES = {
     ongoing: [1, 2, 5, 8],
     voting: [3, 6, 9],
@@ -99,18 +99,16 @@ export default function MyInvestmentsPage() {
       .replace(/\.?0+$/, "");
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="min-h-screen bg-gray-900 text-white">
       <Navbar />
 
       {showStageModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm bg-black/20">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl text-center">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              {stageMessage}
-            </h3>
+        <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm bg-black/50">
+          <div className="bg-gray-800 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-[0_0_30px_rgba(0,255,255,0.2)] text-center">
+            <h3 className="text-lg font-semibold mb-4">{stageMessage}</h3>
             <button
               onClick={() => setShowStageModal(false)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:scale-105 cursor-pointer"
+              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:scale-105 transition-all"
             >
               OK
             </button>
@@ -119,14 +117,10 @@ export default function MyInvestmentsPage() {
       )}
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 h-screen flex flex-col overflow-hidden">
-        <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">
-          My Investments
-        </h1>
+        <h1 className="text-3xl font-bold mb-6">My Investments</h1>
         <FilterTabs filter={filter} setFilter={setFilter} />
         {isLoading ? (
-          <div className="text-gray-600 dark:text-gray-400 py-12">
-            Loading...
-          </div>
+          <div className="text-gray-400 py-12">Loading...</div>
         ) : filteredInvestments.length > 0 ? (
           <div className="flex-1 min-h-0">
             <ProjectsTable
@@ -142,10 +136,9 @@ export default function MyInvestmentsPage() {
             />
           </div>
         ) : (
-          <div className="text-gray-600 dark:text-gray-400 py-12">
-            No investments found.
-          </div>
+          <div className="text-gray-400 py-12">No investments found.</div>
         )}
+
         {showVoteModal && selectedProject !== null && (
           <VoteModal
             projectId={selectedProject}
@@ -167,28 +160,22 @@ export default function MyInvestmentsPage() {
 }
 
 /* ---------------- Filter Tabs ---------------- */
-function FilterTabs({
-  filter,
-  setFilter,
-}: {
-  filter: "ongoing" | "voting" | "history";
-  setFilter: (v: "ongoing" | "voting" | "history") => void;
-}) {
+function FilterTabs({ filter, setFilter }: any) {
   const tabs: ("ongoing" | "voting" | "history")[] = [
     "ongoing",
     "voting",
     "history",
   ];
   return (
-    <div className="flex border-b border-gray-300 dark:border-gray-700 mb-6">
+    <div className="flex border-b border-gray-700 mb-6">
       {tabs.map((tab) => (
         <button
           key={tab}
           onClick={() => setFilter(tab)}
-          className={`px-4 py-2 -mb-px font-medium border-b-2 transition-colors cursor-pointer ${
+          className={`px-4 py-2 -mb-px font-medium border-b-2 transition-all ${
             filter === tab
-              ? "border-blue-600 text-blue-600"
-              : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+              ? "border-blue-500 text-blue-400"
+              : "border-transparent text-gray-400 hover:text-gray-200"
           }`}
         >
           {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -211,55 +198,42 @@ function ProjectsTable({
   userAddress,
 }: any) {
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
+    <div className="bg-gray-850 rounded-2xl  border border-gray-700 overflow-hidden">
       <div className="overflow-x-auto">
         <div className="overflow-y-auto max-h-[60vh]">
           <table className="min-w-full border-collapse table-auto">
-            <thead className="sticky top-0 z-10 bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur border-b border-gray-200 dark:border-gray-700">
+            <thead className="sticky top-0 z-10 bg-gray-800/80 backdrop-blur border-b border-gray-700">
               <tr>
-                <th className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[30%]">
+                <th className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider text-gray-400 w-[30%]">
                   Project/Creator
                 </th>
-
                 {isOngoing && (
-                  <th className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[15%]">
+                  <th className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider text-gray-400 w-[15%]">
                     Target
                   </th>
                 )}
-
-                <th className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[15%]">
+                <th className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider text-gray-400 w-[15%]">
                   Total Funded
                 </th>
-
-                <th className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[15%]">
+                <th className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider text-gray-400 w-[15%]">
                   My Investment
                 </th>
-
-                {isOngoing || isVoting ? (
-                  <th className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[15%]">
-                    Progress
-                  </th>
-                ) : (
-                  <th className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[15%]">
-                    Result
-                  </th>
-                )}
-
+                <th className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider text-gray-400 w-[15%]">
+                  {isOngoing || isVoting ? "Progress" : "Result"}
+                </th>
                 {isVoting && (
-                  <th className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[15%]">
+                  <th className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider text-gray-400 w-[15%]">
                     Voting
                   </th>
                 )}
-
                 {isVoting && (
-                  <th className="px-5 py-4 text-center text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[10%]">
+                  <th className="px-5 py-4 text-center text-sm font-semibold uppercase tracking-wider text-gray-400 w-[10%]">
                     Vote
                   </th>
                 )}
               </tr>
             </thead>
-
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+            <tbody className="divide-y divide-gray-700">
               {investments.map((inv: any) => (
                 <InvestmentRow
                   key={inv.projectId.toString()}
@@ -306,7 +280,6 @@ function InvestmentRow({
 
   const milestoneIndex =
     inv.state === 3 ? 0 : inv.state === 6 ? 1 : inv.state === 9 ? 2 : null;
-
   const hasVoted =
     !myVotesLoading &&
     milestoneIndex !== null &&
@@ -326,66 +299,52 @@ function InvestmentRow({
 
   return (
     <tr
-      className="group hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors "
+      className="group hover:bg-gray-800 transition-all cursor-pointer"
       onClick={() => setPreviewProject(inv)}
     >
-      {/* Project */}
       <td className="px-5 py-4">
         <div className="flex flex-col">
-          <span className="font-semibold text-gray-900 dark:text-white">
-            {inv.name}
-          </span>
-          <span className="text-xs text-gray-500 dark:text-gray-400">
-            {inv.creator}
-          </span>
+          <span className="font-semibold text-white">{inv.name}</span>
+          <span className="text-xs text-gray-400">{inv.creator}</span>
         </div>
       </td>
 
-      {/* Target */}
       {isOngoing && (
         <td className="px-5 py-4">
-          <span className="font-medium text-gray-900 dark:text-white">
-            {formatEth(inv.softCapWei)} ETH
-          </span>
+          <span className="font-medium">{formatEth(inv.softCapWei)} ETH</span>
         </td>
       )}
 
-      {/* Total Funded */}
       <td className="px-5 py-4">
-        <span className="font-medium text-gray-900 dark:text-white">
-          {formatEth(inv.totalFunded)} ETH
-        </span>
+        <span className="font-medium">{formatEth(inv.totalFunded)} ETH</span>
       </td>
 
-      {/* My Investment */}
       <td className="px-5 py-4">
-        <div className="flex flex-col">
-          <span className="font-semibold text-blue-600 dark:text-blue-400">
-            {formatEth(inv.invested)} ETH
-          </span>
-        </div>
+        <span className="font-semibold text-blue-400">
+          {formatEth(inv.invested)} ETH
+        </span>
       </td>
 
       {/* Progress */}
       <td className="px-5 py-4">
         <div className="flex flex-col gap-2">
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+          <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
             <div
               className={`${progressColor} h-2 rounded-full transition-all duration-700`}
               style={{ width: `${progressPercent}%` }}
             />
           </div>
-          <span className="text-xs text-gray-600 dark:text-gray-400 truncate">
+          <span className="text-xs text-gray-400 truncate">
             {PROJECT_TIMELINE[inv.state]}
           </span>
         </div>
       </td>
 
-      {/* Voting status */}
+      {/* Voting Status */}
       {isVoting && (
         <td className="px-5 py-4">
           <div className="flex flex-col gap-2">
-            <div className="flex h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+            <div className="flex h-2 w-full overflow-hidden rounded-full bg-gray-700">
               {yesPercent > 0 && (
                 <div
                   className="bg-green-500 transition-all"
@@ -399,30 +358,28 @@ function InvestmentRow({
                 />
               )}
             </div>
-            <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-              <span className="text-green-600 dark:text-green-400">
+            <div className="flex justify-between text-xs text-gray-400">
+              <span className="text-green-400">
                 Yes {yesPercent.toFixed(0)}%
               </span>
-              <span className="text-red-600 dark:text-red-400">
-                No {noPercent.toFixed(0)}%
-              </span>
+              <span className="text-red-400">No {noPercent.toFixed(0)}%</span>
             </div>
           </div>
         </td>
       )}
 
-      {/* Action */}
+      {/* Vote Action */}
       {isVoting && (
         <td className="px-5 py-4 text-center">
           {myVotesLoading ? (
             <span className="text-xs text-gray-400">Loading...</span>
           ) : hasVoted ? (
             myVotes[milestoneIndex] === 1 ? (
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-semibold">
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-green-900/30 text-green-400 text-xs font-semibold">
                 ✔ Yes
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs font-semibold">
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-red-900/30 text-red-400 text-xs font-semibold">
                 ✖ No
               </span>
             )
@@ -434,7 +391,7 @@ function InvestmentRow({
                 setSelectedMilestone(milestoneIndex);
                 setShowVoteModal(true);
               }}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold shadow-sm hover:scale-105 transition-all hover:cursor-pointer"
+              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl text-sm font-semibold shadow-sm hover:scale-105 transition-all"
             >
               Vote
             </button>
