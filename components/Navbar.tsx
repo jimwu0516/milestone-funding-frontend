@@ -25,7 +25,13 @@ export default function Navbar() {
           </div>
 
           <div className="hidden md:flex items-center space-x-8 flex-1 justify-center">
-          <Link
+            <Link
+              href="/funding"
+              className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white px-3 py-2 text-sm font-medium"
+            >
+              Funding
+            </Link>
+            <Link
               href="/my-investments"
               className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white px-3 py-2 text-sm font-medium"
             >
