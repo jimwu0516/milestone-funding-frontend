@@ -37,7 +37,6 @@ export default function ProjectPreviewModal({
 }: ProjectPreviewModalProps) {
   const { data: milestoneDescriptions, isLoading: descLoading } =
     useMilestoneDescriptions(project.projectId);
-
   const { data: projectMeta, isLoading: metaLoading } = useProjectMeta(
     project.projectId
   );
@@ -52,13 +51,13 @@ export default function ProjectPreviewModal({
   const [loadingImage, setLoadingImage] = useState(false);
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center px-4">
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center px-4">
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-2xl bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden"
+        className="w-full max-w-2xl bg-gray-900 text-white rounded-3xl shadow-2xl overflow-hidden border border-gray-800"
       >
         {/* Header */}
-        <div className="px-8 py-6 border-b dark:border-gray-700 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+        <div className="px-8 py-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
           <h2 className="text-2xl font-bold">{project.name}</h2>
         </div>
 
@@ -67,7 +66,7 @@ export default function ProjectPreviewModal({
           {/* Description */}
           <section className="space-y-2">
             <h3 className="font-semibold text-lg">Description</h3>
-            <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+            <p className="text-gray-300 whitespace-pre-wrap">
               {project.description || "—"}
             </p>
           </section>
@@ -90,7 +89,6 @@ export default function ProjectPreviewModal({
               const desc = descLoading
                 ? "Loading…"
                 : milestoneDescriptions?.[i]?.trim() || "—";
-
               const hash = metaLoading
                 ? "Loading…"
                 : milestoneHashes?.[i]?.trim() || null;
@@ -98,15 +96,15 @@ export default function ProjectPreviewModal({
               return (
                 <div
                   key={i}
-                  className="p-4 rounded-xl border dark:border-gray-700 space-y-2"
+                  className="p-4 rounded-2xl border border-gray-700 bg-gray-850 shadow-md hover:shadow-[0_0_20px_rgba(0,255,255,0.2)] transition-all"
                 >
                   <div className="text-sm text-gray-400">
                     Milestone #{i + 1}
                   </div>
-                  <div className="font-medium text-gray-900 dark:text-white min-h-[1.5rem]">
+                  <div className="font-medium text-white min-h-[1.5rem]">
                     {desc}
                   </div>
-                  <div className="text-xs text-gray-500 break-all min-h-[1.25rem]">
+                  <div className="text-xs text-gray-400 break-all min-h-[1.25rem]">
                     Hash:{" "}
                     {hash ? (
                       <button
@@ -116,7 +114,7 @@ export default function ProjectPreviewModal({
                             `https://gateway.pinata.cloud/ipfs/${hash}`
                           );
                         }}
-                        className="underline text-blue-600 dark:text-blue-400 hover:text-blue-800 cursor-pointer dark:hover:text-blue-200"
+                        className="underline text-blue-400 hover:text-blue-200 cursor-pointer"
                       >
                         {hash}
                       </button>
@@ -130,18 +128,18 @@ export default function ProjectPreviewModal({
           </section>
         </div>
 
+        {/* Image Preview */}
         {previewImage && (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
             onClick={() => setPreviewImage(null)}
           >
             <div
-              className="max-w-xl w-full p-4 bg-white dark:bg-gray-900 rounded-xl shadow-2xl flex flex-col items-center"
+              className="max-w-xl w-full p-4 bg-gray-900 rounded-2xl shadow-2xl flex flex-col items-center"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Loading 狀態 */}
               {loadingImage && (
-                <div className="text-gray-700 dark:text-gray-300 font-medium py-20">
+                <div className="text-gray-300 font-medium py-20">
                   Loading...
                 </div>
               )}
@@ -149,7 +147,7 @@ export default function ProjectPreviewModal({
               <img
                 src={previewImage}
                 alt="Milestone Preview"
-                className={`w-full h-auto rounded-lg transition-opacity duration-300 ${
+                className={`w-full h-auto rounded-xl transition-opacity duration-300 ${
                   loadingImage ? "opacity-0" : "opacity-100"
                 }`}
                 onLoad={() => setLoadingImage(false)}
@@ -158,7 +156,7 @@ export default function ProjectPreviewModal({
 
               <button
                 onClick={() => setPreviewImage(null)}
-                className="mt-4 w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 hover:cursor-pointer"
+                className="mt-4 w-full py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:opacity-90 transition cursor-pointer"
               >
                 Close
               </button>
@@ -167,10 +165,10 @@ export default function ProjectPreviewModal({
         )}
 
         {/* Footer */}
-        <div className="px-8 py-6 border-t dark:border-gray-700 flex">
+        <div className="px-8 py-6 border-t border-gray-700 flex">
           <button
             onClick={onClose}
-            className="flex-1 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold hover:opacity-90 cursor-pointer"
+            className="flex-1 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold hover:opacity-90 cursor-pointer"
           >
             OK
           </button>
