@@ -200,7 +200,7 @@ export function useClaimableInvestor() {
     address: CONTRACT_ADDRESS,
     abi: CONTRACT_ABI,
     functionName: "getClaimableInvestor",
-    args: address ? [address] : undefined,
+    account: address,
     query: { enabled: !!address },
   });
 }
@@ -211,7 +211,7 @@ export function useClaimableCreator() {
     address: CONTRACT_ADDRESS,
     abi: CONTRACT_ABI,
     functionName: "getClaimableCreator",
-    args: address ? [address] : undefined,
+    account: address,
     query: { enabled: !!address },
   });
 }
