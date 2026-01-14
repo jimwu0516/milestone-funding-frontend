@@ -87,7 +87,7 @@ export default function ClaimCreatorPage() {
               ${
                 isDisabled
                   ? "bg-gray-300 dark:bg-gray-700 text-gray-600 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-500/30 cursor-pointer"
+                  : "bg-gradient-to-r from-blue-600 to-purple-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-500/30 cursor-pointer"
               }
             `}
           >
