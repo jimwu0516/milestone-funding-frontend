@@ -35,6 +35,7 @@ export default function MyInvestmentsPage() {
   const [selectedProject, setSelectedProject] = useState<bigint | null>(null);
   const [selectedMilestone, setSelectedMilestone] = useState<number>(0);
   const [previewProject, setPreviewProject] = useState<any | null>(null);
+  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
 
   useEffect(() => setMounted(true), []);
 
@@ -89,9 +90,13 @@ export default function MyInvestmentsPage() {
     history: [0, 11, 4, 7, 10],
   };
 
-  const filteredInvestments = investments.filter((inv) =>
-    FILTER_STATES[filter].includes(inv.state)
-  );
+  const filteredInvestments = investments
+    .filter((inv) => FILTER_STATES[filter].includes(inv.state))
+    .sort((a, b) => {
+      const idA = Number(a.projectId);
+      const idB = Number(b.projectId);
+      return sortOrder === "desc" ? idB - idA : idA - idB;
+    });
 
   const formatEth = (amount: bigint | string) =>
     parseFloat(typeof amount === "bigint" ? formatEther(amount) : amount)
@@ -117,7 +122,19 @@ export default function MyInvestmentsPage() {
       )}
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 h-screen flex flex-col overflow-hidden">
-        <h1 className="text-3xl font-bold mb-6">My Investments</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <h1 className="text-3xl font-bold">My Investments</h1>
+
+          <select
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
+            className="px-4 py-2 rounded-lg border border-gray-700 bg-gray-800 text-white text-sm hover:border-blue-500 transition"
+          >
+            <option value="desc">Project ID ↓</option>
+            <option value="asc">Project ID ↑</option>
+          </select>
+        </div>
+
         <FilterTabs filter={filter} setFilter={setFilter} />
         {isLoading ? (
           <div className="text-gray-400 py-12">Loading...</div>
