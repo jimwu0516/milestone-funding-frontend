@@ -51,7 +51,7 @@ export default function ProjectCard({
 }: ProjectCardProps) {
   const formatEth = (amount: bigint) => {
     const eth = parseFloat(formatEther(amount));
-    return eth.toFixed(4).replace(/\.?0+$/, "");
+    return eth.toFixed(5).replace(/\.?0+$/, "");
   };
 
   const categoryLabel = CATEGORY_LABELS[category] ?? `Category ${category}`;

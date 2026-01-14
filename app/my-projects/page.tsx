@@ -269,8 +269,8 @@ function ProjectRow({
     getProjectProgress(state);
   const formatEth = (amount: bigint | string) =>
     parseFloat(typeof amount === "bigint" ? formatEther(amount) : amount)
-      .toFixed(8)
-      .replace(/\.?0+$/, "");
+    .toFixed(5)
+    .replace(/\.?0+$/, "");
 
   const handleCancel = async () => {
     setShowTxModal(true);

@@ -20,8 +20,10 @@ export default function InvestorProjectsPage() {
   const projects = allProjects.filter((p) => p.state !== 0);
   const [selectedProject, setSelectedProject] = useState<any | null>(null);
 
-  const formatEth = (amount: bigint) =>
-    parseFloat(formatEther(amount)).toFixed(4);
+  const formatEth = (amount: bigint | string) =>
+    parseFloat(typeof amount === "bigint" ? formatEther(amount) : amount)
+      .toFixed(5)
+      .replace(/\.?0+$/, "");
 
   const total = projects.length;
   const successCount = projects.filter((p) => p.state === 11).length;
