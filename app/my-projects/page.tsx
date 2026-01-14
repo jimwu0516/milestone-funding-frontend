@@ -25,9 +25,18 @@ export default function MyProjectsPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [previewProject, setPreviewProject] = useState<any | null>(null);
+  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
 
   useEffect(() => setMounted(true), []);
   if (!mounted) return null;
+  const sortedProjectIds =
+    projectIds && projectIds.length > 0
+      ? [...projectIds].sort((a: bigint, b: bigint) => {
+          const idA = Number(a);
+          const idB = Number(b);
+          return sortOrder === "desc" ? idB - idA : idA - idB;
+        })
+      : [];
 
   if (!isConnected) {
     return (
@@ -51,7 +60,11 @@ export default function MyProjectsPage() {
       )}
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24 overflow-hidden">
-        <Header setShowCreateForm={setShowCreateForm} />
+        <Header
+          setShowCreateForm={setShowCreateForm}
+          sortOrder={sortOrder}
+          setSortOrder={setSortOrder}
+        />
         <FilterTabs filter={filter} setFilter={setFilter} />
 
         {showCreateForm && (
@@ -68,7 +81,7 @@ export default function MyProjectsPage() {
           <LoadingState />
         ) : projectIds && projectIds.length > 0 ? (
           <ProjectsTable
-            projectIds={projectIds}
+            projectIds={sortedProjectIds}
             userAddress={address!}
             filter={filter}
             setPreviewProject={setPreviewProject}
@@ -84,18 +97,34 @@ export default function MyProjectsPage() {
 /* ---------------- Header ---------------- */
 function Header({
   setShowCreateForm,
+  sortOrder,
+  setSortOrder,
 }: {
   setShowCreateForm: (v: boolean) => void;
+  sortOrder: "asc" | "desc";
+  setSortOrder: (v: "asc" | "desc") => void;
 }) {
   return (
-    <div className="flex justify-between items-center mb-6">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
       <h1 className="text-3xl font-bold">My Projects</h1>
-      <button
-        onClick={() => setShowCreateForm(true)}
-        className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl text-white font-semibold shadow-lg hover:scale-105 transition-all cursor-pointer"
-      >
-        Create
-      </button>
+
+      <div className="flex gap-3">
+        <select
+          value={sortOrder}
+          onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
+          className="px-4 py-2 rounded-lg border border-gray-700 bg-gray-800 text-white text-sm hover:border-blue-500 transition"
+        >
+          <option value="desc">Project ID ↓</option>
+          <option value="asc">Project ID ↑</option>
+        </select>
+
+        <button
+          onClick={() => setShowCreateForm(true)}
+          className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl text-white font-semibold shadow-lg hover:scale-105 transition-all cursor-pointer"
+        >
+          Create
+        </button>
+      </div>
     </div>
   );
 }
