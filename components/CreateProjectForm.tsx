@@ -154,7 +154,7 @@ export default function CreateProjectForm({
                   step="0.0001"
                   placeholder="Target in ETH"
                   value={formData.softCapEther}
-                  min="0.000000000000000001"
+                  min="0.0001"
                   onChange={(e) => {
                     const value = e.target.value;
 
