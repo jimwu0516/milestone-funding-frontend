@@ -60,7 +60,6 @@ export default function CreateProjectForm({
       !name ||
       !description ||
       !softCapEther ||
-      softCapNum <= 0 ||
       softCapNum < 0.0001 ||
       milestones.some((m) => !m)
     ) {
