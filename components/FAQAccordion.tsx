@@ -25,7 +25,7 @@ const faqData: FAQCategory[] = [
         question:
           "How do I submit a milestone after finishing a building stage?",
         answer:
-          "When your project is in a Building stage, go to the 'My Project' page and click 'Submit Milestone'. You can upload a photo as proof of your completed work. The file is uploaded to IPFS and its CID (hash) is stored on-chain. Once submitted, the project automatically moves into a Voting Round where investors will review and vote on the milestone.",
+          "When your project is in a Building stage, go to the 'My Project' page and click 'Submit Milestone'. You can upload a photo or a PDF file as proof of your completed work. The file is uploaded to IPFS and its CID (hash) is stored on-chain. Once submitted, the project automatically moves into a Voting Round where investors will review and vote on the milestone.",
       },
       {
         question: "When do I get paid?",
