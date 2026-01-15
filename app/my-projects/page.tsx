@@ -269,8 +269,8 @@ function ProjectRow({
     getProjectProgress(state);
   const formatEth = (amount: bigint | string) =>
     parseFloat(typeof amount === "bigint" ? formatEther(amount) : amount)
-    .toFixed(5)
-    .replace(/\.?0+$/, "");
+      .toFixed(5)
+      .replace(/\.?0+$/, "");
 
   const handleCancel = async () => {
     setShowTxModal(true);
@@ -294,7 +294,8 @@ function ProjectRow({
     <>
       <tr
         className="group hover:bg-gray-800 transition-all cursor-pointer"
-        onClick={() =>
+        onClick={() => {
+          if (showMilestoneModal) return;
           setPreviewProject({
             projectId,
             creator,
@@ -304,8 +305,8 @@ function ProjectRow({
             softCapWei,
             totalFunded,
             state,
-          })
-        }
+          });
+        }}
       >
         <td className="px-5 py-4">
           <div className="flex flex-col">
