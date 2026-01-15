@@ -29,6 +29,8 @@ export default function SubmitMilestoneModal({
   const { submit, isPending, isConfirming, isSuccess, error, hash } =
     useSubmitMilestone();
 
+  const isPdf = file?.type === "application/pdf";
+
   useEffect(() => {
     if (!file) {
       setPreview(null);
@@ -130,38 +132,51 @@ export default function SubmitMilestoneModal({
               hover:border-green-500 hover:text-green-600
               hover:bg-green-50 dark:hover:bg-gray-700"
               >
-                Choose image file
+                Choose image or pdf file
               </label>
               <input
                 ref={fileInputRef}
                 id="milestone-file"
                 type="file"
-                accept="image/*"
+                accept="image/*,application/pdf"
                 className="hidden"
                 onChange={(e) => setFile(e.target.files?.[0] || null)}
               />
 
-              {/* Image preview */}
-              {preview && (
-                <div className="relative mt-4">
-                  <img
-                    src={preview}
-                    alt="Preview"
-                    className="w-full h-48 object-cover rounded-lg border border-gray-300 dark:border-gray-600"
-                  />
+              {/* File Preview */}
+              {preview && file && (
+                <div className="relative mt-4 border border-gray-300 dark:border-gray-600 rounded-lg rounded-lg overflow-hidden">
+                  {file.type === "application/pdf" ? (
+                    <div className="h-64 overflow-y-auto bg-gray-100 dark:bg-gray-800">
+                      <iframe
+                        src={`${preview}#page=1&view=FitH`}
+                        className="w-full h-full"
+                        title="PDF Preview"
+                      />
+                    </div>
+                  ) : (
+                    <img
+                      src={preview}
+                      alt="Preview"
+                      className="w-full h-48 object-cover"
+                    />
+                  )}
+
+                  {/* Remove button */}
                   <button
                     onClick={() => {
                       setFile(null);
                       if (fileInputRef.current) fileInputRef.current.value = "";
                     }}
                     className="absolute top-2 right-2 bg-black/60 hover:bg-black text-white
-                 rounded-full w-8 h-8 flex items-center justify-center transition"
+        rounded-full w-8 h-8 flex items-center justify-center transition"
                     title="Remove"
                   >
                     ✕
                   </button>
                 </div>
               )}
+
               {/* Milestone Description */}
               {currentMilestoneDescription && (
                 <div className="p-4 rounded-xl bg-green-50 dark:bg-green-950 text-sm text-gray-700 dark:text-gray-300">
