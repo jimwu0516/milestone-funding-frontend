@@ -61,6 +61,7 @@ export default function CreateProjectForm({
       !description ||
       !softCapEther ||
       softCapNum <= 0 ||
+      softCapNum < 0.0001 ||
       milestones.some((m) => !m)
     ) {
       return alert("Please fill in all fields and set a positive target.");
@@ -152,7 +153,7 @@ export default function CreateProjectForm({
                 <input
                   type="number"
                   step="0.0001"
-                  placeholder="Target in ETH"
+                  placeholder="Target in ETH (min:0.0001)"
                   value={formData.softCapEther}
                   min="0.0001"
                   onChange={(e) => {

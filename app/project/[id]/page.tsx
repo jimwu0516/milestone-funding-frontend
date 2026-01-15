@@ -134,8 +134,8 @@ export default function ProjectDetailPage() {
     if (!fundAmount || !projectId) return;
     try {
       const amount = parseEther(fundAmount);
-      if (amount <= 0) {
-        alert("Value should be greater than 0");
+      if (amount < parseEther("0.0001")) {
+        alert("Minimum funding amount is 0.0001 ETH");
         return;
       }
       setShowInputModal(false);
@@ -173,7 +173,7 @@ export default function ProjectDetailPage() {
             <div className="px-8 py-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
               <h2 className="text-2xl font-bold">Invest</h2>
               <p className="text-sm opacity-80 mt-1">
-                Enter the amount of ETH you want to invest
+                Enter the amount of ETH you want to invest (min 0.0001)
               </p>
             </div>
 
@@ -181,7 +181,7 @@ export default function ProjectDetailPage() {
               <div className="relative">
                 <input
                   type="number"
-                  min={0}
+                  min="0.0001"
                   step="0.0001"
                   max={formatEth(remaining)}
                   value={fundAmount}
