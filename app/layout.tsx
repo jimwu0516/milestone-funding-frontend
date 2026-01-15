@@ -10,6 +10,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-Hant" suppressHydrationWarning>
+      <head>
+        <title></title>
+      </head>
       <body suppressHydrationWarning>
         <Providers>{children}</Providers>
       </body>
