@@ -1,13 +1,12 @@
 //components/VoteModal.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import TxModal from "./TxModal";
 import {
   useProjectMeta,
   useProjectVoting,
   useVote,
-  useProjectCore,
   useMilestoneDescriptions,
 } from "@/hooks/useContract";
 import { useAccount } from "wagmi";
@@ -15,7 +14,7 @@ import { useMyVotes } from "@/hooks/useContract";
 
 type VoteModalProps = {
   projectId: bigint;
-  milestoneIndex: number; // VotingRound1 => 0, VotingRound2 => 1, VotingRound3 => 2
+  milestoneIndex: number;
   onClose: () => void;
   onSuccess?: () => void;
 };
@@ -30,9 +29,15 @@ export default function VoteModal({
   const { data: meta, refetch: refetchMeta } = useProjectMeta(projectId);
   const { data: votingData, refetch: refetchVoting } =
     useProjectVoting(projectId);
+  const { data: milestoneDescriptions } = useMilestoneDescriptions(projectId);
+
+  const { address } = useAccount();
+  const { refetch: refetchMyVotes } = useMyVotes(projectId, address);
 
   const [selected, setSelected] = useState<1 | 2 | null>(null);
   const [showTx, setShowTx] = useState(false);
+  const [previewType, setPreviewType] = useState<"image" | "pdf">("image");
+  const [imageLoading, setImageLoading] = useState(true);
 
   const milestoneHashes = meta?.[0];
   const milestoneCID =
@@ -47,30 +52,19 @@ export default function VoteModal({
 
   const yesWeights =
     votingData && Array.isArray(votingData) ? votingData[2] : null;
-
   const noWeights =
     votingData && Array.isArray(votingData) ? votingData[3] : null;
 
-  const snapshotTotalWeight =
-    votingData && Array.isArray(votingData) ? votingData[1] : 0n;
-
   const yesWeight =
     roundIndex !== null && yesWeights ? yesWeights[roundIndex] ?? 0n : 0n;
-
   const noWeight =
     roundIndex !== null && noWeights ? noWeights[roundIndex] ?? 0n : 0n;
 
   const yes = Number(yesWeight);
   const no = Number(noWeight);
-
   const sum = yes + no;
-
   const yesPercent = sum > 0 ? (yes / sum) * 100 : 0;
   const noPercent = sum > 0 ? (no / sum) * 100 : 0;
-
-  const { address } = useAccount();
-
-  const { refetch: refetchMyVotes } = useMyVotes(projectId, address);
 
   const handleVote = async () => {
     if (!selected) return;
@@ -89,28 +83,17 @@ export default function VoteModal({
     }
   };
 
-  const { data: projectCore } = useProjectCore(projectId);
-  const { data: milestoneDescriptions } = useMilestoneDescriptions(projectId);
+  useEffect(() => {
+    setImageLoading(true);
+    setPreviewType("image");
+  }, [milestoneCID]);
 
-  const getCurrentMilestoneIndex = () => {
-    if (!projectCore) return 0;
-    const state = projectCore.state;
-    switch (state) {
-      case 2:
-        return 0;
-      case 5:
-        return 1;
-      case 8:
-        return 2;
-      default:
-        return 0;
-    }
-  };
+  const currentMilestoneDescription = useMemo(() => {
+    if (!milestoneDescriptions) return "";
+    return milestoneDescriptions[milestoneIndex] || "";
+  }, [milestoneDescriptions, milestoneIndex]);
 
-  const currentMilestoneIndex = getCurrentMilestoneIndex();
-  const currentMilestoneDescription = milestoneDescriptions
-    ? milestoneDescriptions[currentMilestoneIndex]
-    : "";
+  const isPdf = previewType === "pdf";
 
   return (
     <>
@@ -119,34 +102,73 @@ export default function VoteModal({
           onClick={(e) => e.stopPropagation()}
           className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 scale-90 opacity-0 animate-fadeIn"
         >
+          {/* Header */}
           <div className="px-8 py-6 border-b dark:border-gray-700 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
             <h2 className="text-2xl font-bold">
-              Vote on Milestone {currentMilestoneIndex + 1}
+              Vote on Milestone {milestoneIndex + 1}
             </h2>
             <p className="text-sm opacity-80 mt-1">
               Support or reject this milestone
             </p>
           </div>
 
+          {/* Content */}
           <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
+            {/* Milestone Preview */}
             {milestoneCID ? (
-              <img
-                src={`https://gateway.pinata.cloud/ipfs/${milestoneCID}`}
-                alt={`Milestone ${currentMilestoneIndex + 1}`}
-                className="mb-4 rounded-xl object-cover w-full h-64 shadow-sm"
-              />
+              <div
+                className="mb-4 w-full h-64 rounded-xl overflow-hidden relative bg-gray-100 dark:bg-gray-800 cursor-pointer group"
+                onClick={() =>
+                  window.open(
+                    `https://gateway.pinata.cloud/ipfs/${milestoneCID}`,
+                    "_blank"
+                  )
+                }
+              >
+                {isPdf ? (
+                  <div className="h-full w-full overflow-auto">
+                    <iframe
+                      src={`https://gateway.pinata.cloud/ipfs/${milestoneCID}#page=1&view=FitH`}
+                      className="w-full h-full"
+                    />
+                  </div>
+                ) : (
+                  <>
+                    {imageLoading && (
+                      <div className="absolute inset-0 flex items-center justify-center text-gray-500 dark:text-gray-400 z-10">
+                        Loading preview...
+                      </div>
+                    )}
+                    <img
+                      src={`https://gateway.pinata.cloud/ipfs/${milestoneCID}`}
+                      alt={`Milestone ${milestoneIndex + 1}`}
+                      className={`w-full h-full object-cover transition-opacity duration-300 ${
+                        imageLoading ? "opacity-0" : "opacity-100"
+                      }`}
+                      onLoad={() => setImageLoading(false)}
+                      onError={() => setPreviewType("pdf")}
+                    />
+                  </>
+                )}
+
+                <div className="absolute inset-0 flex items-center justify-center bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity text-white font-medium text-m z-20">
+                  View this file
+                </div>
+              </div>
             ) : (
               <div className="mb-4 h-64 flex items-center justify-center border border-gray-300 dark:border-gray-700 rounded-xl text-gray-500 dark:text-gray-400">
                 No milestone image
               </div>
             )}
 
+            {/* Milestone Description */}
             {currentMilestoneDescription && (
               <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm">
                 {currentMilestoneDescription}
               </div>
             )}
 
+            {/* Voting Bar */}
             <div>
               <div className="flex h-4 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
                 {yesPercent > 0 && (
@@ -168,6 +190,7 @@ export default function VoteModal({
               </div>
             </div>
 
+            {/* Vote Buttons */}
             <div className="flex gap-4">
               <button
                 onClick={() => setSelected(1)}
@@ -192,6 +215,7 @@ export default function VoteModal({
               </button>
             </div>
 
+            {/* Action Buttons */}
             <div className="flex justify-end gap-3">
               <button
                 onClick={onClose}
@@ -211,6 +235,7 @@ export default function VoteModal({
         </div>
       </div>
 
+      {/* Transaction Modal */}
       <TxModal
         isOpen={showTx}
         onClose={handleCloseTx}
