@@ -1,4 +1,4 @@
-//components/ProjecPreviewModal.tsx
+// components/ProjectPreviewModal.tsx
 "use client";
 
 import { useMilestoneDescriptions, useProjectMeta } from "@/hooks/useContract";
@@ -49,6 +49,14 @@ export default function ProjectPreviewModal({
 
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [loadingImage, setLoadingImage] = useState(false);
+  const [previewType, setPreviewType] = useState<"image" | "pdf" | null>(null);
+
+  const handlePreview = (cid: string) => {
+    const url = `https://gateway.pinata.cloud/ipfs/${cid}`;
+    setPreviewImage(url);
+    setPreviewType("image");
+    setLoadingImage(true);
+  };
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center px-4">
@@ -108,12 +116,7 @@ export default function ProjectPreviewModal({
                     Hash:{" "}
                     {hash ? (
                       <button
-                        onClick={() => {
-                          setLoadingImage(true);
-                          setPreviewImage(
-                            `https://gateway.pinata.cloud/ipfs/${hash}`
-                          );
-                        }}
+                        onClick={() => handlePreview(hash)}
                         className="underline text-blue-400 hover:text-blue-200 cursor-pointer"
                       >
                         {hash}
@@ -128,7 +131,7 @@ export default function ProjectPreviewModal({
           </section>
         </div>
 
-        {/* Image Preview */}
+        {/* Preview Modal */}
         {previewImage && (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
@@ -138,21 +141,40 @@ export default function ProjectPreviewModal({
               className="max-w-xl w-full p-4 bg-gray-900 rounded-2xl shadow-2xl flex flex-col items-center"
               onClick={(e) => e.stopPropagation()}
             >
+              {/* Loading overlay */}
               {loadingImage && (
                 <div className="text-gray-300 font-medium py-20">
-                  Loading...
+                  Loading preview...
                 </div>
               )}
 
-              <img
-                src={previewImage}
-                alt="Milestone Preview"
-                className={`w-full h-auto rounded-xl transition-opacity duration-300 ${
-                  loadingImage ? "opacity-0" : "opacity-100"
-                }`}
-                onLoad={() => setLoadingImage(false)}
-                onError={() => setLoadingImage(false)}
-              />
+              {/* Image Preview */}
+              {previewType === "image" && (
+                <img
+                  src={previewImage}
+                  alt="Milestone Preview"
+                  className={`w-full h-auto rounded-xl transition-opacity duration-300 ${
+                    loadingImage ? "opacity-0" : "opacity-100"
+                  }`}
+                  onLoad={() => setLoadingImage(false)}
+                  onError={() => setPreviewType("pdf")}
+                />
+              )}
+
+              {/* PDF Preview */}
+              {previewType === "pdf" && (
+                <iframe
+                  src={previewImage + "#page=1&view=FitH"}
+                  className="w-full max-h-[80vh] h-[80vh] rounded-xl border border-gray-700"
+                  onLoad={() => setLoadingImage(false)}
+                />
+              )}
+
+              {!previewType && (
+                <div className="text-gray-400 py-20">
+                  Cannot preview this file.
+                </div>
+              )}
 
               <button
                 onClick={() => setPreviewImage(null)}
@@ -170,7 +192,7 @@ export default function ProjectPreviewModal({
             onClick={onClose}
             className="flex-1 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold hover:opacity-90 cursor-pointer"
           >
-            OK
+            Done
           </button>
         </div>
       </div>
