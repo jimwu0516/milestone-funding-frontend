@@ -27,7 +27,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-6 py-24 text-center relative mt-20">
           <div className="absolute inset-0 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 opacity-10 blur-3xl -z-10 animate-pulse-slow"></div>
           <h1 className="text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-600">
-            Milestone Funding
+            MileFunds
           </h1>
           <p className="mt-6 text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
             A decentralized protocol for funding builders — capital is released
@@ -45,10 +45,10 @@ export default function Home() {
       <section className="max-w-6xl mx-auto px-6 py-20 grid md:grid-cols-2 gap-12">
         <div>
           <h2 className="text-3xl font-semibold text-gradient bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-pink-500">
-            What is Milestone Funding?
+            What is MileFunds?
           </h2>
           <p className="mt-6 text-gray-600 dark:text-gray-400 leading-relaxed">
-            Milestone Funding is a trust-minimized crowdfunding protocol.
+            MileFunds is a trust-minimized crowdfunding protocol.
             Instead of giving creators all the money upfront, funds are locked
             in a smart contract and released in stages as builders prove
             progress.
@@ -116,7 +116,7 @@ export default function Home() {
 
       <section className="max-w-6xl mx-auto px-6 py-20">
         <h2 className="text-3xl font-semibold text-center bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-pink-500">
-          Why Build on Milestone Funding?
+          Why Build on MileFunds?
         </h2>
         <p className="mt-6 text-gray-600 dark:text-gray-400 text-center max-w-3xl mx-auto">
           Empower your project with trustless funding, staged milestone
@@ -217,7 +217,7 @@ export default function Home() {
         </div>
 
         <p className="text-gray-500 dark:text-gray-400 text-sm mt-4">
-          © 2026 Milestone Funding. All rights reserved.
+          © 2026 MileFunds. All rights reserved.
         </p>
       </footer>
 
