@@ -366,6 +366,7 @@ function ProjectRow({
             {showMilestoneModal && (
               <SubmitMilestoneModal
                 projectId={projectId}
+                state={state}
                 onClose={() => setShowMilestoneModal(false)}
               />
             )}

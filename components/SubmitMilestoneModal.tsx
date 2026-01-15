@@ -1,11 +1,10 @@
 // components/SubmitMilestoneModal.tsx
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import TxModal from "@/components/TxModal";
 import {
   useSubmitMilestone,
-  useProjectCore,
   useMilestoneDescriptions,
 } from "@/hooks/useContract";
 import { uploadToIPFS } from "@/lib/ipfs";
@@ -13,9 +12,11 @@ import { useQueryClient } from "@tanstack/react-query";
 
 export default function SubmitMilestoneModal({
   projectId,
+  state,
   onClose,
 }: {
   projectId: bigint;
+  state: number;
   onClose: () => void;
 }) {
   const [file, setFile] = useState<File | null>(null);
@@ -28,8 +29,6 @@ export default function SubmitMilestoneModal({
   const queryClient = useQueryClient();
   const { submit, isPending, isConfirming, isSuccess, error, hash } =
     useSubmitMilestone();
-
-  const isPdf = file?.type === "application/pdf";
 
   useEffect(() => {
     if (!file) {
@@ -76,28 +75,33 @@ export default function SubmitMilestoneModal({
   const baseButtonClass =
     "px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow transform hover:cursor-pointer";
 
-  const { data: projectCore } = useProjectCore(projectId);
-  const { data: milestoneDescriptions } = useMilestoneDescriptions(projectId);
-
-  const getCurrentMilestoneIndex = () => {
-    if (!projectCore) return 0;
-    const state = projectCore.state;
+  const currentMilestoneIndex = useMemo(() => {
     switch (state) {
       case 2:
+      case 3:
+      case 4:
         return 0;
       case 5:
+      case 6:
+      case 7:
         return 1;
       case 8:
+      case 9:
+      case 10:
         return 2;
       default:
         return 0;
     }
-  };
+  }, [state]);
 
-  const currentMilestoneIndex = getCurrentMilestoneIndex();
-  const currentMilestoneDescription = milestoneDescriptions
-    ? milestoneDescriptions[currentMilestoneIndex]
-    : "";
+  const { data: milestoneDescriptions } = useMilestoneDescriptions(projectId);
+
+  const currentMilestoneDescription = useMemo(() => {
+    if (!milestoneDescriptions) return "";
+    return milestoneDescriptions[currentMilestoneIndex] || "";
+  }, [milestoneDescriptions, currentMilestoneIndex]);
+
+  const isPdf = file?.type === "application/pdf";
 
   return (
     <>
@@ -145,8 +149,8 @@ export default function SubmitMilestoneModal({
 
               {/* File Preview */}
               {preview && file && (
-                <div className="relative mt-4 border border-gray-300 dark:border-gray-600 rounded-lg rounded-lg overflow-hidden">
-                  {file.type === "application/pdf" ? (
+                <div className="relative mt-4 border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+                  {isPdf ? (
                     <div className="h-64 overflow-y-auto bg-gray-100 dark:bg-gray-800">
                       <iframe
                         src={`${preview}#page=1&view=FitH`}
@@ -169,7 +173,7 @@ export default function SubmitMilestoneModal({
                       if (fileInputRef.current) fileInputRef.current.value = "";
                     }}
                     className="absolute top-2 right-2 bg-black/60 hover:bg-black text-white
-        rounded-full w-8 h-8 flex items-center justify-center transition"
+                      rounded-full w-8 h-8 flex items-center justify-center transition"
                     title="Remove"
                   >
                     ✕
