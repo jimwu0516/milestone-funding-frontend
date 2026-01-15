@@ -23,7 +23,7 @@ export default function CreatorProjectsPage() {
       .toFixed(5)
       .replace(/\.?0+$/, "");
 
-  const total = projects.length;
+  const total = projects.filter((p) => [11, 4, 7, 10].includes(p.state)).length;
   const successCount = projects.filter((p) => p.state === 11).length;
   const failedCount = projects.filter((p) =>
     [4, 7, 10].includes(p.state)

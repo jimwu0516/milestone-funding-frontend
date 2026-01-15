@@ -100,8 +100,22 @@ export default function MyInvestmentsPage() {
 
   const formatEth = (amount: bigint | string) =>
     parseFloat(typeof amount === "bigint" ? formatEther(amount) : amount)
-    .toFixed(5)
-    .replace(/\.?0+$/, "");
+      .toFixed(5)
+      .replace(/\.?0+$/, "");
+
+  const validProjects = investments.filter((p) =>
+    [11, 4, 7, 10].includes(p.state)
+  );
+
+  const total = validProjects.length;
+
+  const successCount = validProjects.filter((p) => p.state === 11).length;
+  const failedCount = validProjects.filter((p) =>
+    [4, 7, 10].includes(p.state)
+  ).length;
+
+  const successRate = total > 0 ? (successCount / total) * 100 : 0;
+  const failedRate = total > 0 ? (failedCount / total) * 100 : 0;
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -125,14 +139,34 @@ export default function MyInvestmentsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <h1 className="text-3xl font-bold">My Investments</h1>
 
-          <select
-            value={sortOrder}
-            onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
-            className="px-4 py-2 rounded-lg border border-gray-700 bg-gray-800 text-white text-sm hover:border-blue-500 transition"
-          >
-            <option value="desc">Project ID ↓</option>
-            <option value="asc">Project ID ↑</option>
-          </select>
+          <div className="flex items-center gap-6">
+            {/* Success */}
+            <div className="w-28 px-4 py-3 rounded-xl text-center bg-gradient-to-br from-green-500 to-green-700 shadow-lg">
+              <div className="text-xs text-green-100">Success</div>
+              <div className="text-lg font-bold text-white">
+                {successRate.toFixed(0)}%
+              </div>
+            </div>
+
+            {/* Failed */}
+            <div className="w-28 px-4 py-3 rounded-xl text-center bg-gradient-to-br from-red-500 to-red-700 shadow-lg">
+              <div className="text-xs text-red-100">Failed</div>
+              <div className="text-lg font-bold text-white">
+                {failedRate.toFixed(0)}%
+              </div>
+            </div>
+
+            {/* Sort 
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
+              className="px-4 py-2 rounded-lg border border-gray-700 bg-gray-800 text-white text-sm hover:border-blue-500 transition"
+            >
+              <option value="desc">Project ID ↓</option>
+              <option value="asc">Project ID ↑</option>
+            </select>
+            */}
+          </div>
         </div>
 
         <FilterTabs filter={filter} setFilter={setFilter} />
