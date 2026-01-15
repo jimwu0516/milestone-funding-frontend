@@ -11,7 +11,8 @@ export default function RootLayout({
   return (
     <html lang="zh-Hant" suppressHydrationWarning>
       <head>
-        <title>Milestone Funding</title>
+        <title>MILEFUNDS</title>
+        <link rel="icon" type="image/png"  href="/milestoneFundinglogo.png" />
       </head>
       <body suppressHydrationWarning>
         <Providers>{children}</Providers>

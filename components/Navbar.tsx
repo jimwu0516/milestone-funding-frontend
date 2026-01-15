@@ -83,7 +83,7 @@ export default function Navbar() {
                   alt="Milestone Funding Logo"
                   className="h-8 w-8 object-contain"
                 />
-                <span className="text-xl font-bold font-sans">MILEFUND</span>
+                <span className="text-xl font-bold font-sans">MILEFUNDS</span>
               </Link>
             </div>
 
