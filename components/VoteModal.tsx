@@ -115,51 +115,46 @@ export default function VoteModal({
           {/* Content */}
           <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
             {/* Milestone Preview */}
-            {milestoneCID ? (
-              <div
-                className="mb-4 w-full h-64 rounded-xl overflow-hidden relative bg-gray-100 dark:bg-gray-800 cursor-pointer group"
-                onClick={() =>
-                  window.open(
-                    `https://gateway.pinata.cloud/ipfs/${milestoneCID}`,
-                    "_blank"
-                  )
-                }
-              >
-                {isPdf ? (
-                  <div className="h-full w-full overflow-auto">
-                    <iframe
-                      src={`https://gateway.pinata.cloud/ipfs/${milestoneCID}#page=1&view=FitH`}
-                      className="w-full h-full"
-                    />
-                  </div>
-                ) : (
-                  <>
-                    {imageLoading && (
-                      <div className="absolute inset-0 flex items-center justify-center text-gray-500 dark:text-gray-400 z-10">
-                        Loading preview...
-                      </div>
-                    )}
-                    <img
-                      src={`https://gateway.pinata.cloud/ipfs/${milestoneCID}`}
-                      alt={`Milestone ${milestoneIndex + 1}`}
-                      className={`w-full h-full object-cover transition-opacity duration-300 ${
-                        imageLoading ? "opacity-0" : "opacity-100"
-                      }`}
-                      onLoad={() => setImageLoading(false)}
-                      onError={() => setPreviewType("pdf")}
-                    />
-                  </>
-                )}
 
-                <div className="absolute inset-0 flex items-center justify-center bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity text-white font-medium text-m z-20">
-                  View this file
+            <div
+              className="mb-4 w-full h-64 rounded-xl overflow-hidden relative bg-gray-100 dark:bg-gray-800 cursor-pointer group"
+              onClick={() =>
+                window.open(
+                  `https://gateway.pinata.cloud/ipfs/${milestoneCID}`,
+                  "_blank"
+                )
+              }
+            >
+              {isPdf ? (
+                <div className="h-full w-full overflow-auto">
+                  <iframe
+                    src={`https://gateway.pinata.cloud/ipfs/${milestoneCID}#page=1&view=FitH`}
+                    className="w-full h-full"
+                  />
                 </div>
+              ) : (
+                <>
+                  {imageLoading && (
+                    <div className="absolute inset-0 flex items-center justify-center text-gray-500 dark:text-gray-400 z-10">
+                      Loading preview...
+                    </div>
+                  )}
+                  <img
+                    src={`https://gateway.pinata.cloud/ipfs/${milestoneCID}`}
+                    alt={`Milestone ${milestoneIndex + 1}`}
+                    className={`w-full h-full object-cover transition-opacity duration-300 ${
+                      imageLoading ? "opacity-0" : "opacity-100"
+                    }`}
+                    onLoad={() => setImageLoading(false)}
+                    onError={() => setPreviewType("pdf")}
+                  />
+                </>
+              )}
+
+              <div className="absolute inset-0 flex items-center justify-center bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity text-white font-medium text-m z-20">
+                View this file
               </div>
-            ) : (
-              <div className="mb-4 h-64 flex items-center justify-center border border-gray-300 dark:border-gray-700 rounded-xl text-gray-500 dark:text-gray-400">
-                No milestone image
-              </div>
-            )}
+            </div>
 
             {/* Milestone Description */}
             {currentMilestoneDescription && (

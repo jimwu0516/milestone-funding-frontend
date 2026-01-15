@@ -11,7 +11,7 @@ export default function RootLayout({
   return (
     <html lang="zh-Hant" suppressHydrationWarning>
       <head>
-        <title></title>
+        <title>Milestone Funding</title>
       </head>
       <body suppressHydrationWarning>
         <Providers>{children}</Providers>
