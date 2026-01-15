@@ -109,6 +109,7 @@ function Header({
       <h1 className="text-3xl font-bold">My Projects</h1>
 
       <div className="flex gap-3">
+        {/*
         <select
           value={sortOrder}
           onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
@@ -117,12 +118,13 @@ function Header({
           <option value="desc">Project ID ↓</option>
           <option value="asc">Project ID ↑</option>
         </select>
+        */}
 
         <button
           onClick={() => setShowCreateForm(true)}
           className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl text-white font-semibold shadow-lg hover:scale-105 transition-all cursor-pointer"
         >
-          Create
+          Create new project
         </button>
       </div>
     </div>
