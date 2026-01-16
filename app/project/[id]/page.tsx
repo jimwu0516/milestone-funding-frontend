@@ -9,9 +9,9 @@ import Navbar from "@/components/Navbar";
 import TxModal from "@/components/TxModal";
 import {
   useProjectCore,
+  useProjectMeta,
   useAllInvestments,
   useFundProject,
-  useMilestoneDescriptions,
 } from "@/hooks/useContract";
 
 const CATEGORY_LABELS = [
@@ -64,26 +64,28 @@ export default function ProjectDetailPage() {
     "Completed",
   ];
 
+  // Hooks
   const {
     data: projectCore,
     isLoading: coreLoading,
     refetch: refetchCore,
   } = useProjectCore(projectId);
 
+  const { data: projectMeta } = useProjectMeta(projectId);
+
   const { data: investments, refetch: refetchInvestments } =
     useAllInvestments(projectId);
-
-  const { data: milestoneDescriptions, isLoading: milestonesLoading } =
-    useMilestoneDescriptions(projectId);
 
   const { fund, isPending, isConfirming, isSuccess, error, hash } =
     useFundProject();
 
+  // Update building modal when state changes
   useEffect(() => {
     if (!projectCore) return;
-    const currentIndex = Number(projectCore[7]);
-    const currentState = states[currentIndex];
+    const stateIndex = Number(projectCore[5]); // state 在 projectCore[5]
+    const currentState = states[stateIndex];
     const prevIndex = prevState !== null ? states.indexOf(prevState) : null;
+
     if (prevState === "Funding" && currentState === "BuildingStage1") {
       setShowBuildingModal(true);
     }
@@ -91,18 +93,13 @@ export default function ProjectDetailPage() {
   }, [projectCore]);
 
   if (!projectId) return <div>Invalid ProjectID</div>;
-  if (coreLoading || !projectCore) return <div>Loading...</div>;
+  if (coreLoading || !projectCore || !projectMeta) return <div>Loading...</div>;
 
-  const [
-    creator,
-    name,
-    description,
-    category,
-    softCapWei,
-    totalFunded,
-    bond,
-    state,
-  ] = projectCore;
+  // Extract Core
+  const [creator, category, softCapWei, totalFunded, bond, state] = projectCore;
+
+  // Extract Meta
+  const [name, description, milestoneDescriptions] = projectMeta;
 
   const remaining =
     softCapWei > totalFunded ? softCapWei - totalFunded : BigInt(0);
@@ -148,13 +145,13 @@ export default function ProjectDetailPage() {
     }
   };
 
-  const categoryLabel = CATEGORY_LABELS[category] ?? `Category ${category}`;
+  const categoryLabel =
+    CATEGORY_LABELS[Number(category)] ?? `Category ${category}`;
+  const categoryStyle =
+    CATEGORY_STYLES[Number(category)] ?? "bg-gray-800 text-gray-200";
 
   const baseButtonClass =
     "px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-lg transform hover:cursor-pointer";
-
-  const categoryStyle =
-    CATEGORY_STYLES[category] ?? "bg-gray-800 text-gray-200";
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -303,9 +300,9 @@ export default function ProjectDetailPage() {
 
           {/* Milestones */}
           <div className="flex-1 flex gap-4 overflow-x-auto">
-            {milestonesLoading ? (
+            {milestoneDescriptions?.length === 0 ? (
               <div className="flex-1 flex items-center justify-center text-gray-400">
-                Loading milestones...
+                No milestones
               </div>
             ) : (
               milestoneDescriptions?.map((desc, idx) => (

@@ -1,7 +1,7 @@
 //components/ProjectList.tsx
 "use client";
 
-import { useAllFundingProjects, useProjectCore } from "@/hooks/useContract";
+import { useAllFundingProjects, useProjectCore, useProjectMeta } from "@/hooks/useContract";
 import ProjectCard from "./ProjectCard";
 import { useEffect, useMemo, useState } from "react";
 
@@ -115,40 +115,34 @@ function ProjectCardLoader({
   projectId: bigint;
   onLoaded: (p: Project) => void;
 }) {
-  const { data } = useProjectCore(projectId);
+const { data: coreData } = useProjectCore(projectId);
+const { data: metaData } = useProjectMeta(projectId);
 
-  useEffect(() => {
-    if (!data) return;
+useEffect(() => {
+  if (!coreData || !metaData) return;
 
-    const [
-      creator,
-      name,
-      description,
-      category,
-      softCapWei,
-      totalFunded,
-      bond,
-      state,
-    ] = data;
+  const [creator, category, softCapWei, totalFunded, bond, state] = coreData;
+  const [name, description] = metaData; // 取前兩個元素即可
 
-    const progress =
-      softCapWei > BigInt(0)
-        ? Number((totalFunded * BigInt(10000)) / softCapWei) / 100
-        : 0;
+  const progress =
+    softCapWei > BigInt(0)
+      ? Number((totalFunded * BigInt(10000)) / softCapWei) / 100
+      : 0;
 
-    onLoaded({
-      projectId,
-      creator,
-      name,
-      description,
-      category,
-      softCapWei,
-      totalFunded,
-      bond,
-      state,
-      progress,
-    });
-  }, [data, projectId, onLoaded]);
+  onLoaded({
+    projectId,
+    creator,
+    name,
+    description,
+    category,
+    softCapWei,
+    totalFunded,
+    bond,
+    state,
+    progress,
+  });
+}, [coreData, metaData, projectId, onLoaded]);
+
 
   return null;
 }
