@@ -38,26 +38,54 @@ export function useAllFundingProjects() {
   });
 }
 
-export function useProjectCore(projectId: bigint | undefined) {
-  return useReadContract({
+export function useProjectCore(projectId: number) {
+  const { data, isLoading, isError, refetch } = useReadContract({
     address: CONTRACT_ADDRESS,
     abi: CONTRACT_ABI,
     functionName: "getProjectCore",
-    args: projectId !== undefined ? [projectId] : undefined,
-    query: {
-      enabled: projectId !== undefined,
-    },
+    args: [projectId],
+    watch: true,
   });
+
+  return {
+    projectCore: data
+      ? {
+          creator: data[0] as string,
+          category: data[1] as number,
+          softCapWei: data[2] as bigint,
+          totalFunded: data[3] as bigint,
+          bond: data[4] as bigint,
+          state: data[5] as number,
+        }
+      : null,
+    isLoading,
+    isError,
+    refetch,
+  };
 }
 
-export function useProjectMeta(projectId: bigint | undefined) {
-  return useReadContract({
+export function useProjectMeta(projectId: number) {
+  const { data, isLoading, isError, refetch } = useReadContract({
     address: CONTRACT_ADDRESS,
     abi: CONTRACT_ABI,
     functionName: "getProjectMeta",
-    args: projectId !== undefined ? [projectId] : undefined,
-    query: { enabled: projectId !== undefined },
+    args: [projectId],
+    watch: true,
   });
+
+  return {
+    projectMeta: data
+      ? {
+          name: data[0] as string,
+          description: data[1] as string,
+          milestoneDescriptions: data[2] as string[],
+          milestoneHashes: data[3] as string[],
+        }
+      : null,
+    isLoading,
+    isError,
+    refetch,
+  };
 }
 
 export function useProjectVoting(projectId: bigint | undefined) {

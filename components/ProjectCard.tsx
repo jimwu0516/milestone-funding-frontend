@@ -3,17 +3,15 @@
 
 import { formatEther } from "viem";
 import Link from "next/link";
+import { ProjectCore } from "@/hooks/useContract";
 
 interface ProjectCardProps {
   projectId: bigint;
-  name: string;
-  description: string;
-  creator: string;
-  softCapWei: bigint;
-  totalFunded: bigint;
-  bond: bigint;
-  state: string;
-  category: number;
+  core: ProjectCore;
+  meta: {
+    name: string;
+    description: string;
+  };
 }
 
 const CATEGORY_LABELS = [
@@ -38,53 +36,26 @@ const CATEGORY_STYLES: Record<number, string> = {
   7: "bg-rose-800 text-rose-200",
 };
 
-export default function ProjectCard({
-  projectId,
-  name,
-  description,
-  creator,
-  softCapWei,
-  totalFunded,
-  bond,
-  state,
-  category,
-}: ProjectCardProps) {
-  const formatEth = (amount: bigint) => {
-    const eth = parseFloat(formatEther(amount));
-    return eth.toFixed(5).replace(/\.?0+$/, "");
-  };
+export default function ProjectCard({ projectId, core, meta }: ProjectCardProps) {
+  const formatEth = (amount: bigint) => parseFloat(formatEther(amount)).toFixed(5).replace(/\.?0+$/, "");
+  const softCap = formatEth(core.softCapWei);
+  const funded = formatEth(core.totalFunded);
+  const progress = core.softCapWei > BigInt(0)
+    ? Number((core.totalFunded * BigInt(100)) / core.softCapWei)
+    : 0;
 
-  const categoryLabel = CATEGORY_LABELS[category] ?? `Category ${category}`;
-
-  const softCap = formatEth(softCapWei);
-  const funded = formatEth(totalFunded);
-  const progress =
-    softCapWei > BigInt(0)
-      ? Number((totalFunded * BigInt(100)) / softCapWei)
-      : 0;
-
-  const categoryStyle =
-    CATEGORY_STYLES[category] ?? "bg-gray-800 text-gray-200";
+  const categoryLabel = CATEGORY_LABELS[core.category] ?? `Category ${core.category}`;
+  const categoryStyle = CATEGORY_STYLES[core.category] ?? "bg-gray-800 text-gray-200";
 
   return (
     <Link href={`/project/${projectId.toString()}`}>
-      <div
-        className="
-          bg-gray-850 backdrop-blur-md rounded-xl border border-gray-700 p-6
-          hover:shadow-[0_0_20px_rgba(0,255,255,0.4)] transform transition-all duration-300
-          hover:-translate-y-1 cursor-pointer
-        "
-      >
+      <div className="bg-gray-850 backdrop-blur-md rounded-xl border border-gray-700 p-6 hover:shadow-[0_0_20px_rgba(0,255,255,0.4)] transform transition-all duration-300 hover:-translate-y-1 cursor-pointer">
         <div className="flex justify-between items-start mb-4">
-          <h3 className="text-2xl font-bold text-white">{name}</h3>
-          <span
-            className={`px-3 py-1 text-xs font-medium rounded-full ${categoryStyle}`}
-          >
-            {categoryLabel}
-          </span>
+          <h3 className="text-2xl font-bold text-white">{meta.name}</h3>
+          <span className={`px-3 py-1 text-xs font-medium rounded-full ${categoryStyle}`}>{categoryLabel}</span>
         </div>
 
-        <p className="text-gray-400 text-sm mb-4">{description}</p>
+        <p className="text-gray-400 text-sm mb-4">{meta.description}</p>
 
         <div className="space-y-2 mb-4">
           <div className="flex justify-between text-sm font-mono">
