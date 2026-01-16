@@ -1,33 +1,20 @@
 //components/ProjectList.tsx
-// components/ProjectList.tsx
 "use client";
 
-import {
-  useAllFundingProjects,
-  useProjectCore,
-  useProjectMeta,
-} from "@/hooks/useContract";
+import { useAllFundingProjects, useProjectCore } from "@/hooks/useContract";
 import ProjectCard from "./ProjectCard";
 import { useEffect, useMemo, useState } from "react";
 
-type ProjectCoreData = {
+type Project = {
+  projectId: bigint;
   creator: string;
+  name: string;
+  description: string;
   category: number;
   softCapWei: bigint;
   totalFunded: bigint;
   bond: bigint;
-  state: number;
-};
-
-type ProjectMetaData = {
-  name: string;
-  description: string;
-};
-
-type Project = {
-  projectId: bigint;
-  core: ProjectCoreData;
-  meta: ProjectMetaData;
+  state: string;
   progress: number;
 };
 
@@ -38,7 +25,7 @@ export default function ProjectList({
   sortBy: "id" | "remaining";
   category: number | "all";
 }) {
-  const { data: projectIdsData } = useAllFundingProjects(); // ✅ 注意取 data
+  const { data: projectIds, isLoading, error } = useAllFundingProjects();
   const [projects, setProjects] = useState<Record<string, Project>>({});
 
   const handleLoaded = (p: Project) => {
@@ -48,37 +35,53 @@ export default function ProjectList({
       if (
         prevP &&
         prevP.progress === p.progress &&
-        prevP.core.totalFunded === p.core.totalFunded
-      )
+        prevP.totalFunded === p.totalFunded &&
+        prevP.softCapWei === p.softCapWei
+      ) {
         return prev;
+      }
       return { ...prev, [key]: p };
     });
   };
 
   const visible = useMemo(() => {
     let arr = Object.values(projects);
-    if (category !== "all")
-      arr = arr.filter((p) => p.core.category === category);
-    if (sortBy === "id")
+
+    if (category !== "all") {
+      arr = arr.filter((p) => p.category === category);
+    }
+
+    if (sortBy === "id") {
       arr.sort((a, b) => (a.projectId < b.projectId ? -1 : 1));
-    else arr.sort((a, b) => b.progress - a.progress);
+    } else {
+      arr.sort((a, b) => b.progress - a.progress);
+    }
+
     return arr;
   }, [projects, sortBy, category]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-2">
-      {!projectIdsData && (
+      {isLoading && (
         <div className="py-12 text-center text-gray-600 dark:text-gray-400">
           Loading...
         </div>
       )}
-      {projectIdsData && projectIdsData.length === 0 && (
+
+      {error && (
+        <div className="py-12 text-center text-red-600 dark:text-red-400">
+          ERROR: {error.message}
+        </div>
+      )}
+
+      {!isLoading && !error && projectIds && projectIds.length === 0 && (
         <div className="py-12 text-center text-gray-600 dark:text-gray-400">
           No Funding Project
         </div>
       )}
 
-      {projectIdsData?.map((id) => (
+      {/* Project loaders */}
+      {projectIds?.map((id) => (
         <ProjectCardLoader
           key={id.toString()}
           projectId={id}
@@ -86,12 +89,19 @@ export default function ProjectList({
         />
       ))}
 
+      {/* Visible project cards */}
       {visible.map((p) => (
         <ProjectCard
           key={`card-${p.projectId.toString()}`}
           projectId={p.projectId}
-          core={p.core}
-          meta={p.meta}
+          name={p.name}
+          description={p.description}
+          creator={p.creator}
+          softCapWei={p.softCapWei}
+          totalFunded={p.totalFunded}
+          bond={p.bond}
+          state={p.state}
+          category={p.category}
         />
       ))}
     </div>
@@ -105,27 +115,40 @@ function ProjectCardLoader({
   projectId: bigint;
   onLoaded: (p: Project) => void;
 }) {
-  const core = useProjectCore(Number(projectId));
-  const meta = useProjectMeta(Number(projectId));
+  const { data } = useProjectCore(projectId);
 
   useEffect(() => {
-    if (!core?.projectCore || !meta?.projectMeta) return;
+    if (!data) return;
 
-    const c = core.projectCore;
-    const m = meta.projectMeta;
+    const [
+      creator,
+      name,
+      description,
+      category,
+      softCapWei,
+      totalFunded,
+      bond,
+      state,
+    ] = data;
 
     const progress =
-      c.softCapWei > BigInt(0)
-        ? Number((c.totalFunded * BigInt(10000)) / c.softCapWei) / 100
+      softCapWei > BigInt(0)
+        ? Number((totalFunded * BigInt(10000)) / softCapWei) / 100
         : 0;
 
     onLoaded({
       projectId,
-      core: c,
-      meta: { name: m.name, description: m.description },
+      creator,
+      name,
+      description,
+      category,
+      softCapWei,
+      totalFunded,
+      bond,
+      state,
       progress,
     });
-  }, [core, meta, projectId, onLoaded]);
+  }, [data, projectId, onLoaded]);
 
   return null;
 }

@@ -38,54 +38,16 @@ export function useAllFundingProjects() {
   });
 }
 
-export function useProjectCore(projectId: number) {
-  const { data, isLoading, isError, refetch } = useReadContract({
+export function useProjectCore(projectId: bigint | undefined) {
+  return useReadContract({
     address: CONTRACT_ADDRESS,
     abi: CONTRACT_ABI,
     functionName: "getProjectCore",
-    args: [projectId],
-    watch: true,
+    args: projectId !== undefined ? [projectId] : undefined,
+    query: {
+      enabled: projectId !== undefined,
+    },
   });
-
-  return {
-    projectCore: data
-      ? {
-          creator: data[0] as string,
-          category: data[1] as number,
-          softCapWei: data[2] as bigint,
-          totalFunded: data[3] as bigint,
-          bond: data[4] as bigint,
-          state: data[5] as number,
-        }
-      : null,
-    isLoading,
-    isError,
-    refetch,
-  };
-}
-
-export function useProjectMeta(projectId: number) {
-  const { data, isLoading, isError, refetch } = useReadContract({
-    address: CONTRACT_ADDRESS,
-    abi: CONTRACT_ABI,
-    functionName: "getProjectMeta",
-    args: [projectId],
-    watch: true,
-  });
-
-  return {
-    projectMeta: data
-      ? {
-          name: data[0] as string,
-          description: data[1] as string,
-          milestoneDescriptions: data[2] as string[],
-          milestoneHashes: data[3] as string[],
-        }
-      : null,
-    isLoading,
-    isError,
-    refetch,
-  };
 }
 
 export function useProjectVoting(projectId: bigint | undefined) {
@@ -93,6 +55,16 @@ export function useProjectVoting(projectId: bigint | undefined) {
     address: CONTRACT_ADDRESS,
     abi: CONTRACT_ABI,
     functionName: "getProjectVoting",
+    args: projectId !== undefined ? [projectId] : undefined,
+    query: { enabled: projectId !== undefined },
+  });
+}
+
+export function useProjectMeta(projectId: bigint | undefined) {
+  return useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: CONTRACT_ABI,
+    functionName: "getProjectMeta",
     args: projectId !== undefined ? [projectId] : undefined,
     query: { enabled: projectId !== undefined },
   });
@@ -224,14 +196,13 @@ export function useMyVotes(
 
 export function useClaimableRefund() {
   const { address } = useAccount();
-
   return useReadContract({
     address: CONTRACT_ADDRESS,
     abi: CONTRACT_ABI,
     functionName: "getAllClaimableRefund",
     account: address,
-    watch: true,      
-    query: { enabled: !!address },
+    watch: true,
+    enabled: !!address,
   });
 }
 
@@ -247,17 +218,16 @@ export function useClaimableCreator() {
 }
 
 export function useClaimableOwner() {
-  const { address } = useAccount(); 
+  const { address } = useAccount();
   return useReadContract({
     address: CONTRACT_ADDRESS,
     abi: CONTRACT_ABI,
     functionName: "getClaimableOwner",
-    account: address, 
-    watch: true,        
+    account: address,
+    watch: true,
     enabled: !!address,
   });
 }
-
 
 export function useClaimAllRefund() {
   const { writeContract, data: hash, isPending, error } = useWriteContract();
@@ -305,17 +275,37 @@ export function useClaimOwner() {
   return { claim, isPending, isConfirming, isSuccess, error, hash };
 }
 
-export function useMyInvestedProjects() {
+export function useMyInvestments() {
   const { address } = useAccount();
 
-  return useReadContract({
+  const { data, isLoading, refetch } = useReadContract({
     address: CONTRACT_ADDRESS,
     abi: CONTRACT_ABI,
     functionName: "getMyInvestedProjects",
     account: address,
-    watch: true,           
-    query: { enabled: !!address }, 
+    args: undefined,
+    query: { enabled: !!address },
+    watch: true,
   });
+
+  const investments =
+    data && data.length === 11
+      ? (data[0] as string[]).map((_, i) => ({
+          projectId: BigInt(data[0][i]),
+          creator: data[1][i],
+          name: data[2][i],
+          description: data[3][i],
+          category: data[4][i],
+          softCapWei: BigInt(data[5][i]),
+          totalFunded: BigInt(data[6][i]),
+          bond: BigInt(data[7][i]),
+          state: Number(data[8][i]),
+          invested: BigInt(data[9][i]),
+          milestones: data[10][i] as string[],
+        }))
+      : [];
+
+  return { investments, isLoading, refetch };
 }
 
 export function useMilestoneDescriptions(projectId: bigint | undefined) {
@@ -411,4 +401,3 @@ export function useProjectsByInvestor(address?: `0x${string}`) {
 
   return { investments, isLoading, refetch };
 }
-

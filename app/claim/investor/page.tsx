@@ -5,7 +5,7 @@ import Navbar from "@/components/Navbar";
 import TxModal from "@/components/TxModal";
 import { useState, useEffect } from "react";
 import { formatEther } from "viem";
-import { useClaimableInvestor, useClaimInvestor } from "@/hooks/useContract";
+import { useClaimableRefund, useClaimAllRefund } from "@/hooks/useContract";
 import { useAccount } from "wagmi";
 
 export default function ClaimInvestorPage() {
@@ -13,9 +13,9 @@ export default function ClaimInvestorPage() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const { data: claimable, refetch } = useClaimableInvestor();
+  const { data: claimable, refetch } = useClaimableRefund();
   const { claim, isPending, isConfirming, isSuccess, error, hash } =
-    useClaimInvestor();
+    useClaimAllRefund();
 
   const [showTxModal, setShowTxModal] = useState(false);
 

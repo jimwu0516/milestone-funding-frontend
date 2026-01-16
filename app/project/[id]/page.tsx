@@ -9,9 +9,9 @@ import Navbar from "@/components/Navbar";
 import TxModal from "@/components/TxModal";
 import {
   useProjectCore,
-  useProjectMeta,
   useAllInvestments,
   useFundProject,
+  useMilestoneDescriptions,
 } from "@/hooks/useContract";
 
 const CATEGORY_LABELS = [
@@ -40,7 +40,6 @@ export default function ProjectDetailPage() {
   const router = useRouter();
   const params = useParams();
   const projectId = params?.id ? BigInt(params.id as string) : undefined;
-  const projectIdNum = projectId ? Number(projectId) : undefined;
   const { address } = useAccount();
 
   const [showInputModal, setShowInputModal] = useState(false);
@@ -65,27 +64,26 @@ export default function ProjectDetailPage() {
     "Completed",
   ];
 
-  // Hooks
   const {
-    projectCore,
+    data: projectCore,
     isLoading: coreLoading,
     refetch: refetchCore,
-  } = useProjectCore(projectIdNum || 0);
+  } = useProjectCore(projectId);
 
-  const { projectMeta } = useProjectMeta(projectIdNum || 0);
+  const { data: investments, refetch: refetchInvestments } =
+    useAllInvestments(projectId);
 
-  const { data: investmentsData, refetch: refetchInvestments } =
-    useAllInvestments(projectIdNum || 0);
+  const { data: milestoneDescriptions, isLoading: milestonesLoading } =
+    useMilestoneDescriptions(projectId);
 
   const { fund, isPending, isConfirming, isSuccess, error, hash } =
     useFundProject();
 
-  // Update building modal when state changes
   useEffect(() => {
     if (!projectCore) return;
-    const currentState = states[projectCore.state ?? 0];
+    const currentIndex = Number(projectCore[7]);
+    const currentState = states[currentIndex];
     const prevIndex = prevState !== null ? states.indexOf(prevState) : null;
-
     if (prevState === "Funding" && currentState === "BuildingStage1") {
       setShowBuildingModal(true);
     }
@@ -93,13 +91,18 @@ export default function ProjectDetailPage() {
   }, [projectCore]);
 
   if (!projectId) return <div>Invalid ProjectID</div>;
-  if (coreLoading || !projectCore || !projectMeta) return <div>Loading...</div>;
+  if (coreLoading || !projectCore) return <div>Loading...</div>;
 
-  // Extract Core
-  const { creator, category, softCapWei, totalFunded } = projectCore;
-
-  // Extract Meta
-  const { name, description, milestoneDescriptions } = projectMeta;
+  const [
+    creator,
+    name,
+    description,
+    category,
+    softCapWei,
+    totalFunded,
+    bond,
+    state,
+  ] = projectCore;
 
   const remaining =
     softCapWei > totalFunded ? softCapWei - totalFunded : BigInt(0);
@@ -146,14 +149,12 @@ export default function ProjectDetailPage() {
   };
 
   const categoryLabel = CATEGORY_LABELS[category] ?? `Category ${category}`;
-  const categoryStyle = CATEGORY_STYLES[category] ?? "bg-gray-800 text-gray-200";
 
   const baseButtonClass =
     "px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-lg transform hover:cursor-pointer";
 
-  // Extract investments array
-  const investors = investmentsData?.[0] ?? [];
-  const investmentAmounts = investmentsData?.[1] ?? [];
+  const categoryStyle =
+    CATEGORY_STYLES[category] ?? "bg-gray-800 text-gray-200";
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -302,9 +303,9 @@ export default function ProjectDetailPage() {
 
           {/* Milestones */}
           <div className="flex-1 flex gap-4 overflow-x-auto">
-            {milestoneDescriptions?.length === 0 ? (
+            {milestonesLoading ? (
               <div className="flex-1 flex items-center justify-center text-gray-400">
-                No milestones
+                Loading milestones...
               </div>
             ) : (
               milestoneDescriptions?.map((desc, idx) => (
@@ -340,8 +341,8 @@ export default function ProjectDetailPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-700">
-                {investors.length > 0 ? (
-                  investors.map((investor, index) => (
+                {investments && investments[0]?.length > 0 ? (
+                  investments[0].map((investor, index) => (
                     <tr key={investor} className="hover:bg-gray-700 transition">
                       <td
                         className="px-4 py-3 text-sm font-mono break-all text-blue-400 cursor-pointer hover:underline"
@@ -350,7 +351,7 @@ export default function ProjectDetailPage() {
                         {investor}
                       </td>
                       <td className="px-4 py-3 text-sm font-semibold text-white">
-                        {formatEth(investmentAmounts[index])} ETH
+                        {formatEth(investments[1][index])} ETH
                       </td>
                     </tr>
                   ))

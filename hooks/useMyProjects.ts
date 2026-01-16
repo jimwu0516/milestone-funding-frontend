@@ -33,9 +33,3 @@ export function useIsMyProject(projectId: bigint | undefined) {
   const [creator] = projectCore;
   return creator.toLowerCase() === address.toLowerCase();
 }
-
-
-
-
-
-

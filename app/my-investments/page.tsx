@@ -1,15 +1,13 @@
 // app/my-investments/page.tsx
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAccount } from "wagmi";
 import { formatEther } from "viem";
 import Navbar from "@/components/Navbar";
 import VoteModal from "@/components/VoteModal";
 import {
-  useMyInvestedProjects,
-  useProjectCore,
-  useProjectMeta,
+  useMyInvestments,
   useProjectVoting,
   useMyVotes,
 } from "@/hooks/useContract";
@@ -19,9 +17,11 @@ import ProjectPreviewModal from "@/components/ProjectPreviewModal";
 
 export default function MyInvestmentsPage() {
   const { isConnected, address: userAddress } = useAccount();
-  const { data: investedProjects, isLoading: loadingInvested } =
-    useMyInvestedProjects();
-
+  const {
+    investments,
+    isLoading,
+    refetch: refetchInvestments,
+  } = useMyInvestments();
   const [filter, setFilter] = useState<"ongoing" | "voting" | "history">(
     "ongoing"
   );
@@ -39,34 +39,6 @@ export default function MyInvestmentsPage() {
 
   useEffect(() => setMounted(true), []);
 
-  // Filter 投資狀態對應
-  const FILTER_STATES = {
-    ongoing: [1, 2, 5, 8],
-    voting: [3, 6, 9],
-    history: [0, 11, 4, 7, 10],
-  };
-
-  // 將 hook 整合成 investments
-  const investments = (investedProjects ?? []).map((projectId: bigint) => {
-    const { projectCore } = useProjectCore(Number(projectId));
-    const { projectMeta } = useProjectMeta(Number(projectId));
-
-    return {
-      projectId,
-      creator: projectCore?.creator,
-      category: projectCore?.category,
-      softCapWei: projectCore?.softCapWei,
-      totalFunded: projectCore?.totalFunded,
-      bond: projectCore?.bond,
-      state: projectCore?.state,
-      name: projectMeta?.name,
-      milestoneDescriptions: projectMeta?.milestoneDescriptions,
-      milestoneHashes: projectMeta?.milestoneHashes,
-      invested: projectCore?.totalFunded, // 後續可改成個人實際投資額
-    };
-  });
-
-  // 監控投資狀態變化顯示 modal
   useEffect(() => {
     if (!investments || investments.length === 0) return;
 
@@ -112,7 +84,12 @@ export default function MyInvestmentsPage() {
     );
   }
 
-  // 過濾投資
+  const FILTER_STATES = {
+    ongoing: [1, 2, 5, 8],
+    voting: [3, 6, 9],
+    history: [0, 11, 4, 7, 10],
+  };
+
   const filteredInvestments = investments
     .filter((inv) => FILTER_STATES[filter].includes(inv.state))
     .sort((a, b) => {
@@ -129,11 +106,14 @@ export default function MyInvestmentsPage() {
   const validProjects = investments.filter((p) =>
     [11, 4, 7, 10].includes(p.state)
   );
+
   const total = validProjects.length;
+
   const successCount = validProjects.filter((p) => p.state === 11).length;
   const failedCount = validProjects.filter((p) =>
     [4, 7, 10].includes(p.state)
   ).length;
+
   const successRate = total > 0 ? (successCount / total) * 100 : 0;
   const failedRate = total > 0 ? (failedCount / total) * 100 : 0;
 
@@ -160,6 +140,7 @@ export default function MyInvestmentsPage() {
           <h1 className="text-3xl font-bold">My Investments</h1>
 
           <div className="flex items-center gap-6">
+            {/* Success */}
             <div className="w-28 px-4 py-3 rounded-xl text-center bg-gradient-to-br from-green-500 to-green-700 shadow-lg">
               <div className="text-xs text-green-100">Success</div>
               <div className="text-lg font-bold text-white">
@@ -167,18 +148,29 @@ export default function MyInvestmentsPage() {
               </div>
             </div>
 
+            {/* Failed */}
             <div className="w-28 px-4 py-3 rounded-xl text-center bg-gradient-to-br from-red-500 to-red-700 shadow-lg">
               <div className="text-xs text-red-100">Failed</div>
               <div className="text-lg font-bold text-white">
                 {failedRate.toFixed(0)}%
               </div>
             </div>
+
+            {/* Sort 
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
+              className="px-4 py-2 rounded-lg border border-gray-700 bg-gray-800 text-white text-sm hover:border-blue-500 transition"
+            >
+              <option value="desc">Project ID ↓</option>
+              <option value="asc">Project ID ↑</option>
+            </select>
+            */}
           </div>
         </div>
 
         <FilterTabs filter={filter} setFilter={setFilter} />
-
-        {loadingInvested ? (
+        {isLoading ? (
           <div className="text-gray-400 py-12">Loading...</div>
         ) : filteredInvestments.length > 0 ? (
           <div className="flex-1 min-h-0">
@@ -203,7 +195,7 @@ export default function MyInvestmentsPage() {
             projectId={selectedProject}
             milestoneIndex={selectedMilestone}
             onClose={() => setShowVoteModal(false)}
-            onSuccess={() => {}}
+            onSuccess={() => refetchInvestments()}
           />
         )}
 
@@ -257,7 +249,7 @@ function ProjectsTable({
   userAddress,
 }: any) {
   return (
-    <div className="bg-gray-850 rounded-2xl border border-gray-700 overflow-hidden">
+    <div className="bg-gray-850 rounded-2xl  border border-gray-700 overflow-hidden">
       <div className="overflow-x-auto">
         <div className="overflow-y-auto max-h-[60vh]">
           <table className="min-w-full border-collapse table-auto">
@@ -281,14 +273,14 @@ function ProjectsTable({
                   {isOngoing || isVoting ? "Progress" : "Result"}
                 </th>
                 {isVoting && (
-                  <>
-                    <th className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider text-gray-400 w-[15%]">
-                      Voting
-                    </th>
-                    <th className="px-5 py-4 text-center text-sm font-semibold uppercase tracking-wider text-gray-400 w-[10%]">
-                      Vote
-                    </th>
-                  </>
+                  <th className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider text-gray-400 w-[15%]">
+                    Voting
+                  </th>
+                )}
+                {isVoting && (
+                  <th className="px-5 py-4 text-center text-sm font-semibold uppercase tracking-wider text-gray-400 w-[10%]">
+                    Vote
+                  </th>
                 )}
               </tr>
             </thead>
@@ -327,28 +319,18 @@ function InvestmentRow({
   isOngoing,
   userAddress,
 }: any) {
-  const { projectCore } = useProjectCore(Number(inv.projectId));
-  const { projectMeta } = useProjectMeta(Number(inv.projectId));
-  const { data: votingData } = useProjectVoting(inv.projectId);
   const { data: myVotes, isLoading: myVotesLoading } = useMyVotes(
     inv.projectId,
     userAddress
   );
+  const { data: votingData } = useProjectVoting(inv.projectId);
 
-  const investedAmount = projectCore?.totalFunded ?? 0n;
   const { percent: progressPercent, color: progressColor } = getProjectProgress(
-    projectCore?.state
+    inv.state
   );
 
   const milestoneIndex =
-    projectCore?.state === 3
-      ? 0
-      : projectCore?.state === 6
-      ? 1
-      : projectCore?.state === 9
-      ? 2
-      : null;
-
+    inv.state === 3 ? 0 : inv.state === 6 ? 1 : inv.state === 9 ? 2 : null;
   const hasVoted =
     !myVotesLoading &&
     milestoneIndex !== null &&
@@ -373,31 +355,28 @@ function InvestmentRow({
     >
       <td className="px-5 py-4">
         <div className="flex flex-col">
-          <span className="font-semibold text-white">{projectMeta?.name}</span>
-          <span className="text-xs text-gray-400">{projectCore?.creator}</span>
+          <span className="font-semibold text-white">{inv.name}</span>
+          <span className="text-xs text-gray-400">{inv.creator}</span>
         </div>
       </td>
 
       {isOngoing && (
         <td className="px-5 py-4">
-          <span className="font-medium">
-            {formatEth(projectCore?.softCapWei)} ETH
-          </span>
+          <span className="font-medium">{formatEth(inv.softCapWei)} ETH</span>
         </td>
       )}
 
       <td className="px-5 py-4">
-        <span className="font-medium">
-          {formatEth(projectCore?.totalFunded)} ETH
-        </span>
+        <span className="font-medium">{formatEth(inv.totalFunded)} ETH</span>
       </td>
 
       <td className="px-5 py-4">
         <span className="font-semibold text-blue-400">
-          {formatEth(investedAmount)} ETH
+          {formatEth(inv.invested)} ETH
         </span>
       </td>
 
+      {/* Progress */}
       <td className="px-5 py-4">
         <div className="flex flex-col gap-2">
           <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
@@ -407,65 +386,68 @@ function InvestmentRow({
             />
           </div>
           <span className="text-xs text-gray-400 truncate">
-            {PROJECT_TIMELINE[projectCore?.state]}
+            {PROJECT_TIMELINE[inv.state]}
           </span>
         </div>
       </td>
 
+      {/* Voting Status */}
       {isVoting && (
-        <>
-          <td className="px-5 py-4">
-            <div className="flex flex-col gap-2">
-              <div className="flex h-2 w-full overflow-hidden rounded-full bg-gray-700">
-                {yesPercent > 0 && (
-                  <div
-                    className="bg-green-500 transition-all"
-                    style={{ width: `${yesPercent}%` }}
-                  />
-                )}
-                {noPercent > 0 && (
-                  <div
-                    className="bg-red-500 transition-all"
-                    style={{ width: `${noPercent}%` }}
-                  />
-                )}
-              </div>
-              <div className="flex justify-between text-xs text-gray-400">
-                <span className="text-green-400">
-                  Yes {yesPercent.toFixed(0)}%
-                </span>
-                <span className="text-red-400">No {noPercent.toFixed(0)}%</span>
-              </div>
+        <td className="px-5 py-4">
+          <div className="flex flex-col gap-2">
+            <div className="flex h-2 w-full overflow-hidden rounded-full bg-gray-700">
+              {yesPercent > 0 && (
+                <div
+                  className="bg-green-500 transition-all"
+                  style={{ width: `${yesPercent}%` }}
+                />
+              )}
+              {noPercent > 0 && (
+                <div
+                  className="bg-red-500 transition-all"
+                  style={{ width: `${noPercent}%` }}
+                />
+              )}
             </div>
-          </td>
-          <td className="px-5 py-4 text-center">
-            {myVotesLoading ? (
-              <span className="text-xs text-gray-400">Loading...</span>
-            ) : hasVoted ? (
-              myVotes[milestoneIndex] === 1 ? (
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-green-900/30 text-green-400 text-xs font-semibold">
-                  ✔ Yes
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-red-900/30 text-red-400 text-xs font-semibold">
-                  ✖ No
-                </span>
-              )
+            <div className="flex justify-between text-xs text-gray-400">
+              <span className="text-green-400">
+                Yes {yesPercent.toFixed(0)}%
+              </span>
+              <span className="text-red-400">No {noPercent.toFixed(0)}%</span>
+            </div>
+          </div>
+        </td>
+      )}
+
+      {/* Vote Action */}
+      {isVoting && (
+        <td className="px-5 py-4 text-center">
+          {myVotesLoading ? (
+            <span className="text-xs text-gray-400">Loading...</span>
+          ) : hasVoted ? (
+            myVotes[milestoneIndex] === 1 ? (
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-green-900/30 text-green-400 text-xs font-semibold">
+                ✔ Yes
+              </span>
             ) : (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedProject(inv.projectId);
-                  setSelectedMilestone(milestoneIndex);
-                  setShowVoteModal(true);
-                }}
-                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl text-sm font-semibold shadow-sm hover:scale-105 transition-all"
-              >
-                Vote
-              </button>
-            )}
-          </td>
-        </>
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-red-900/30 text-red-400 text-xs font-semibold">
+                ✖ No
+              </span>
+            )
+          ) : (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedProject(inv.projectId);
+                setSelectedMilestone(milestoneIndex);
+                setShowVoteModal(true);
+              }}
+              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl text-sm font-semibold shadow-sm hover:scale-105 transition-all"
+            >
+              Vote
+            </button>
+          )}
+        </td>
       )}
     </tr>
   );
