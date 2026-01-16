@@ -50,21 +50,21 @@ export function useProjectCore(projectId: bigint | undefined) {
   });
 }
 
-export function useProjectVoting(projectId: bigint | undefined) {
-  return useReadContract({
-    address: CONTRACT_ADDRESS,
-    abi: CONTRACT_ABI,
-    functionName: "getProjectVoting",
-    args: projectId !== undefined ? [projectId] : undefined,
-    query: { enabled: projectId !== undefined },
-  });
-}
-
 export function useProjectMeta(projectId: bigint | undefined) {
   return useReadContract({
     address: CONTRACT_ADDRESS,
     abi: CONTRACT_ABI,
     functionName: "getProjectMeta",
+    args: projectId !== undefined ? [projectId] : undefined,
+    query: { enabled: projectId !== undefined },
+  });
+}
+
+export function useProjectVoting(projectId: bigint | undefined) {
+  return useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: CONTRACT_ABI,
+    functionName: "getProjectVoting",
     args: projectId !== undefined ? [projectId] : undefined,
     query: { enabled: projectId !== undefined },
   });
@@ -194,13 +194,15 @@ export function useMyVotes(
   });
 }
 
-export function useClaimableInvestor() {
+export function useClaimableRefund() {
   const { address } = useAccount();
+
   return useReadContract({
     address: CONTRACT_ADDRESS,
     abi: CONTRACT_ABI,
-    functionName: "getClaimableInvestor",
+    functionName: "getAllClaimableRefund",
     account: address,
+    watch: true,      
     query: { enabled: !!address },
   });
 }
@@ -229,7 +231,7 @@ export function useClaimableOwner() {
 }
 
 
-export function useClaimInvestor() {
+export function useClaimAllRefund() {
   const { writeContract, data: hash, isPending, error } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
     hash,
@@ -239,8 +241,9 @@ export function useClaimInvestor() {
     writeContract({
       address: CONTRACT_ADDRESS,
       abi: CONTRACT_ABI,
-      functionName: "claimInvestor",
+      functionName: "claimAllRefund",
     });
+
   return { claim, isPending, isConfirming, isSuccess, error, hash };
 }
 
@@ -274,37 +277,17 @@ export function useClaimOwner() {
   return { claim, isPending, isConfirming, isSuccess, error, hash };
 }
 
-export function useMyInvestments() {
+export function useMyInvestedProjects() {
   const { address } = useAccount();
 
-  const { data, isLoading, refetch } = useReadContract({
+  return useReadContract({
     address: CONTRACT_ADDRESS,
     abi: CONTRACT_ABI,
     functionName: "getMyInvestedProjects",
     account: address,
-    args: undefined,
-    query: { enabled: !!address },
-    watch: true,
+    watch: true,           
+    query: { enabled: !!address }, 
   });
-
-  const investments =
-    data && data.length === 11
-      ? (data[0] as string[]).map((_, i) => ({
-          projectId: BigInt(data[0][i]),
-          creator: data[1][i],
-          name: data[2][i],
-          description: data[3][i],
-          category: data[4][i],
-          softCapWei: BigInt(data[5][i]),
-          totalFunded: BigInt(data[6][i]),
-          bond: BigInt(data[7][i]),
-          state: Number(data[8][i]),
-          invested: BigInt(data[9][i]),
-          milestones: data[10][i] as string[],
-        }))
-      : [];
-
-  return { investments, isLoading, refetch };
 }
 
 export function useMilestoneDescriptions(projectId: bigint | undefined) {
