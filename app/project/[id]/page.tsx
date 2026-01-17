@@ -130,19 +130,56 @@ export default function ProjectDetailPage() {
     }
   };
 
+  const [emailMap, setEmailMap] = useState<Record<string, string>>({});
+
+  const currentEmail = emailMap[address ?? ""] ?? "";
+
+  const handleEmailChange = (value: string) => {
+    if (!address) return;
+    setEmailMap((prev) => ({ ...prev, [address]: value }));
+  };
+
+
   const handleFund = async () => {
     if (!fundAmount || !projectId) return;
+
+    if (!currentEmail || !currentEmail.includes("@")) {
+      alert("Please enter a valid email");
+      return;
+    }
+
     try {
       const amount = parseEther(fundAmount);
       if (amount < parseEther("0.0001")) {
         alert("Minimum funding amount is 0.0001 ETH");
         return;
       }
+
       setShowInputModal(false);
       setShowTxModal(true);
 
       await fund(projectId, amount);
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/registerInvestorEmail`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            projectId: projectId.toString(),
+            investor: address,
+            email: currentEmail,
+          }),
+        },
+      );
+
+      const data = await res.json();
+      if (!data.success) {
+        console.error("Failed to register email", data);
+      }
+
       await refetchCore?.();
+      await refetchInvestments?.();
     } catch (err: any) {
       alert(err?.message || "ERROR");
     }
@@ -199,6 +236,16 @@ export default function ProjectDetailPage() {
                 </button>
               </div>
 
+              <div className="relative">
+                <input
+                  type="email"
+                  value={currentEmail}
+                  onChange={(e) => handleEmailChange(e.target.value)}
+                  placeholder="Your email (for voting notifications)"
+                  className="w-full px-4 py-3 border rounded-lg bg-gray-950 border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
               <div className="flex flex-col gap-3">
                 <button
                   onClick={handleFund}
@@ -225,10 +272,10 @@ export default function ProjectDetailPage() {
           error
             ? "error"
             : isSuccess
-            ? "success"
-            : isConfirming
-            ? "confirming"
-            : "pending"
+              ? "success"
+              : isConfirming
+                ? "confirming"
+                : "pending"
         }
         hash={hash || null}
         errorMessage={error ? "Please try again" : undefined}
