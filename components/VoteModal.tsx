@@ -51,9 +51,9 @@ export default function VoteModal({
     milestoneIndex >= 0 && milestoneIndex <= 2 ? milestoneIndex : null;
 
   const yesWeights =
-    votingData && Array.isArray(votingData) ? votingData[2] : null;
+    votingData && Array.isArray(votingData) ? votingData[1] : null;
   const noWeights =
-    votingData && Array.isArray(votingData) ? votingData[3] : null;
+    votingData && Array.isArray(votingData) ? votingData[2] : null;
 
   const yesWeight =
     roundIndex !== null && yesWeights ? yesWeights[roundIndex] ?? 0n : 0n;

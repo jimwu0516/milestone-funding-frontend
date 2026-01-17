@@ -338,9 +338,9 @@ function InvestmentRow({
     BigInt(myVotes[milestoneIndex] ?? 0n) !== 0n;
 
   const yesWeight =
-    votingData && milestoneIndex !== null ? votingData[2][milestoneIndex] : 0n;
+    votingData && milestoneIndex !== null ? votingData[1][milestoneIndex] : 0n;
   const noWeight =
-    votingData && milestoneIndex !== null ? votingData[3][milestoneIndex] : 0n;
+    votingData && milestoneIndex !== null ? votingData[2][milestoneIndex] : 0n;
 
   const yes = Number(yesWeight);
   const no = Number(noWeight);
