@@ -35,6 +35,7 @@ export function useAllFundingProjects() {
     address: CONTRACT_ADDRESS,
     abi: CONTRACT_ABI,
     functionName: "getAllFundingProjects",
+    watch: true,
   });
 }
 
