@@ -18,14 +18,22 @@ export default function CreatorProjectsPage() {
   const { projects, isLoading } = useProjectsByCreator(address);
   const [selectedProject, setSelectedProject] = useState<any | null>(null);
 
+  const validProjects = projects.filter(
+    (p): p is NonNullable<typeof p> => p !== null
+  );
+
   const formatEth = (amount: bigint | string) =>
     parseFloat(typeof amount === "bigint" ? formatEther(amount) : amount)
       .toFixed(5)
       .replace(/\.?0+$/, "");
 
-  const total = projects.filter((p) => [11, 4, 7, 10].includes(p.state)).length;
-  const successCount = projects.filter((p) => p.state === 11).length;
-  const failedCount = projects.filter((p) =>
+  const total = validProjects.filter((p) =>
+    [11, 4, 7, 10].includes(p.state)
+  ).length;
+
+  const successCount = validProjects.filter((p) => p.state === 11).length;
+
+  const failedCount = validProjects.filter((p) =>
     [4, 7, 10].includes(p.state)
   ).length;
 
@@ -80,7 +88,7 @@ export default function CreatorProjectsPage() {
         {/* Table */}
         {isLoading ? (
           <div className="text-gray-400">Loading…</div>
-        ) : projects.length === 0 ? (
+        ) : validProjects.length === 0 ? (
           <div className="text-gray-400">No projects found</div>
         ) : (
           <div className="bg-gray-850 rounded-2xl border border-gray-700 shadow-lg overflow-hidden">
@@ -102,7 +110,7 @@ export default function CreatorProjectsPage() {
                   </thead>
 
                   <tbody className="divide-y divide-gray-700">
-                    {projects.map((p) => (
+                    {validProjects.map((p) => (
                       <tr
                         key={p.projectId.toString()}
                         onClick={() => setSelectedProject(p)}

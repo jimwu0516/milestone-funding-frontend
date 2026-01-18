@@ -27,7 +27,7 @@ export default function MyInvestmentsPage() {
   );
   const [mounted, setMounted] = useState(false);
 
-  const prevStatesRef = useRef<Record<bigint, number>>({});
+  const prevStatesRef = useRef<Record<string, number>>({});
   const [showStageModal, setShowStageModal] = useState(false);
   const [stageMessage, setStageMessage] = useState("");
 
@@ -45,7 +45,8 @@ export default function MyInvestmentsPage() {
     const VOTING_STATES = [3, 6, 9];
 
     investments.forEach((inv) => {
-      const prev = prevStatesRef.current[inv.projectId] ?? inv.state;
+      const key = inv.projectId.toString();
+      const prev = prevStatesRef.current[key] ?? inv.state;
       const current = inv.state;
 
       if (prev !== current) {
@@ -67,7 +68,7 @@ export default function MyInvestmentsPage() {
         }
       }
 
-      prevStatesRef.current[inv.projectId] = current;
+      prevStatesRef.current[key] = current;
     });
   }, [investments]);
 
@@ -323,7 +324,7 @@ function InvestmentRow({
     inv.projectId,
     userAddress
   );
-  const { data: votingData } = useProjectVoting(inv.projectId);
+  const { data: votingData } = useProjectVoting(inv.projectId) as { data?: bigint[][] };
 
   const { percent: progressPercent, color: progressColor } = getProjectProgress(
     inv.state
@@ -338,9 +339,10 @@ function InvestmentRow({
     BigInt(myVotes[milestoneIndex] ?? 0n) !== 0n;
 
   const yesWeight =
-    votingData && milestoneIndex !== null ? votingData[1][milestoneIndex] : 0n;
+  milestoneIndex !== null ? votingData?.[1]?.[milestoneIndex] ?? 0n : 0n;
   const noWeight =
-    votingData && milestoneIndex !== null ? votingData[2][milestoneIndex] : 0n;
+  milestoneIndex !== null ? votingData?.[2]?.[milestoneIndex] ?? 0n : 0n;
+
 
   const yes = Number(yesWeight);
   const no = Number(noWeight);
