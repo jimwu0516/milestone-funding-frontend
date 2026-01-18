@@ -30,6 +30,7 @@ export function useIsMyProject(projectId: bigint | undefined) {
   const { data: projectCore } = useProjectCore(projectId);
 
   if (!projectCore || !address) return false;
-  const [creator] = projectCore;
+
+  const [creator] = projectCore as [string, ...any[]];
   return creator.toLowerCase() === address.toLowerCase();
 }

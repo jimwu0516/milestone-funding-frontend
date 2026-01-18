@@ -39,7 +39,7 @@ export default function VoteModal({
   const [previewType, setPreviewType] = useState<"image" | "pdf">("image");
   const [imageLoading, setImageLoading] = useState(true);
 
-  const milestoneHashes = meta?.[0];
+  const milestoneHashes = (meta as string[][] | undefined)?.[0];
   const milestoneCID =
     Array.isArray(milestoneHashes) &&
     milestoneIndex >= 0 &&
@@ -56,9 +56,9 @@ export default function VoteModal({
     votingData && Array.isArray(votingData) ? votingData[2] : null;
 
   const yesWeight =
-    roundIndex !== null && yesWeights ? yesWeights[roundIndex] ?? 0n : 0n;
+    roundIndex !== null && yesWeights ? (yesWeights[roundIndex] ?? 0n) : 0n;
   const noWeight =
-    roundIndex !== null && noWeights ? noWeights[roundIndex] ?? 0n : 0n;
+    roundIndex !== null && noWeights ? (noWeights[roundIndex] ?? 0n) : 0n;
 
   const yes = Number(yesWeight);
   const no = Number(noWeight);
@@ -89,8 +89,9 @@ export default function VoteModal({
   }, [milestoneCID]);
 
   const currentMilestoneDescription = useMemo(() => {
-    if (!milestoneDescriptions) return "";
-    return milestoneDescriptions[milestoneIndex] || "";
+    const descriptions = milestoneDescriptions as string[] | undefined;
+    if (!descriptions) return "";
+    return descriptions[milestoneIndex] || "";
   }, [milestoneDescriptions, milestoneIndex]);
 
   const isPdf = previewType === "pdf";
@@ -121,7 +122,7 @@ export default function VoteModal({
               onClick={() =>
                 window.open(
                   `https://gateway.pinata.cloud/ipfs/${milestoneCID}`,
-                  "_blank"
+                  "_blank",
                 )
               }
             >
@@ -238,10 +239,10 @@ export default function VoteModal({
           error
             ? "error"
             : isSuccess
-            ? "success"
-            : isConfirming
-            ? "confirming"
-            : "pending"
+              ? "success"
+              : isConfirming
+                ? "confirming"
+                : "pending"
         }
         hash={hash || null}
         errorMessage={error ? "Try again" : undefined}

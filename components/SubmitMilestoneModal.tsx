@@ -94,7 +94,11 @@ export default function SubmitMilestoneModal({
     }
   }, [state]);
 
-  const { data: milestoneDescriptions } = useMilestoneDescriptions(projectId);
+  const { data: milestoneDescriptionsRaw } =
+    useMilestoneDescriptions(projectId);
+  const milestoneDescriptions = milestoneDescriptionsRaw as
+    | string[]
+    | undefined;
 
   const currentMilestoneDescription = useMemo(() => {
     if (!milestoneDescriptions) return "";
@@ -216,10 +220,10 @@ export default function SubmitMilestoneModal({
           error
             ? "error"
             : isSuccess
-            ? "success"
-            : isConfirming
-            ? "confirming"
-            : "pending"
+              ? "success"
+              : isConfirming
+                ? "confirming"
+                : "pending"
         }
         hash={hash || null}
         errorMessage={error ? "Try again" : undefined}

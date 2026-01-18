@@ -8,11 +8,13 @@ import {
   useAccount,
   useReadContracts,
 } from "wagmi";
-import contractABI from "@/contracts/Milestonefunding.json";
+import type { Abi } from "abitype";
+import contractJSON from "@/contracts/Milestonefunding.json";
 
 const CONTRACT_ADDRESS = process.env
   .NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`;
-const CONTRACT_ABI = contractABI.abi;
+
+const CONTRACT_ABI: Abi = contractJSON.abi as Abi;
 
 export function useContractAddress() {
   return CONTRACT_ADDRESS;
@@ -23,11 +25,15 @@ export function useContractABI() {
 }
 
 export function useProjectCount() {
-  return useReadContract({
+  const result = useReadContract({
     address: CONTRACT_ADDRESS,
     abi: CONTRACT_ABI,
     functionName: "projectCount",
   });
+
+  const data = result.data as bigint | undefined;
+
+  return { ...result, data };
 }
 
 export function useAllFundingProjects() {
@@ -35,7 +41,9 @@ export function useAllFundingProjects() {
     address: CONTRACT_ADDRESS,
     abi: CONTRACT_ABI,
     functionName: "getAllFundingProjects",
-    watch: true,
+    query: {
+      refetchInterval: 5000,
+    },
   });
 }
 
@@ -45,9 +53,7 @@ export function useProjectCore(projectId: bigint | undefined) {
     abi: CONTRACT_ABI,
     functionName: "getProjectCore",
     args: projectId !== undefined ? [projectId] : undefined,
-    query: {
-      enabled: projectId !== undefined,
-    },
+    query: { enabled: projectId !== undefined },
   });
 }
 
@@ -93,7 +99,7 @@ export function useCreateProject() {
     softCapWei: bigint,
     category: number,
     milestoneDescriptions: [string, string, string],
-    bond: bigint
+    bond: bigint,
   ) => {
     writeContract({
       address: CONTRACT_ADDRESS,
@@ -182,7 +188,7 @@ export function useVote() {
 
 export function useMyVotes(
   projectId: bigint | undefined,
-  userAddress: `0x${string}` | undefined
+  userAddress: `0x${string}` | undefined,
 ) {
   const enabled = projectId !== undefined && !!userAddress;
   return useReadContract({
@@ -190,8 +196,7 @@ export function useMyVotes(
     abi: CONTRACT_ABI,
     functionName: "getMyVotes",
     args: enabled ? [projectId!, userAddress!] : undefined,
-    query: { enabled },
-    watch: true,
+    query: { enabled, refetchInterval: 5000 },
   });
 }
 
@@ -202,8 +207,7 @@ export function useClaimableRefund() {
     abi: CONTRACT_ABI,
     functionName: "getAllClaimableRefund",
     account: address,
-    watch: true,
-    enabled: !!address,
+    query: { enabled: !!address, refetchInterval: 5000 },
   });
 }
 
@@ -225,56 +229,23 @@ export function useClaimableOwner() {
     abi: CONTRACT_ABI,
     functionName: "getClaimableOwner",
     account: address,
-    watch: true,
-    enabled: !!address,
+    query: { enabled: !!address, refetchInterval: 5000 },
   });
 }
 
-export function useClaimAllRefund() {
-  const { writeContract, data: hash, isPending, error } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
-    hash,
-  });
-
-  const claim = () =>
-    writeContract({
-      address: CONTRACT_ADDRESS,
-      abi: CONTRACT_ABI,
-      functionName: "claimAllRefund",
-    });
-
-  return { claim, isPending, isConfirming, isSuccess, error, hash };
-}
-
-export function useClaimCreator() {
-  const { writeContract, data: hash, isPending, error } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
-    hash,
-  });
-
-  const claim = () =>
-    writeContract({
-      address: CONTRACT_ADDRESS,
-      abi: CONTRACT_ABI,
-      functionName: "claimCreator",
-    });
-  return { claim, isPending, isConfirming, isSuccess, error, hash };
-}
-
-export function useClaimOwner() {
-  const { writeContract, data: hash, isPending, error } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
-    hash,
-  });
-
-  const claim = () =>
-    writeContract({
-      address: CONTRACT_ADDRESS,
-      abi: CONTRACT_ABI,
-      functionName: "claimOwner",
-    });
-  return { claim, isPending, isConfirming, isSuccess, error, hash };
-}
+export type InvestedRawData = readonly [
+  string[], // projectIds
+  string[], // creators
+  string[], // names
+  string[], // descriptions
+  number[], // categories
+  string[], // softCapWei
+  string[], // totalFunded
+  string[], // bond
+  number[], // state
+  string[], // invested
+  string[][], // milestones
+];
 
 export function useMyInvestments() {
   const { address } = useAccount();
@@ -284,25 +255,26 @@ export function useMyInvestments() {
     abi: CONTRACT_ABI,
     functionName: "getMyInvestedProjects",
     account: address,
-    args: undefined,
+    args: [],
     query: { enabled: !!address },
-    watch: true,
   });
 
+  const investedData = data as InvestedRawData | undefined;
+
   const investments =
-    data && data.length === 11
-      ? (data[0] as string[]).map((_, i) => ({
-          projectId: BigInt(data[0][i]),
-          creator: data[1][i],
-          name: data[2][i],
-          description: data[3][i],
-          category: data[4][i],
-          softCapWei: BigInt(data[5][i]),
-          totalFunded: BigInt(data[6][i]),
-          bond: BigInt(data[7][i]),
-          state: Number(data[8][i]),
-          invested: BigInt(data[9][i]),
-          milestones: data[10][i] as string[],
+    investedData && investedData.length === 11
+      ? investedData[0].map((_: string, i: number) => ({
+          projectId: BigInt(investedData[0][i]),
+          creator: investedData[1][i],
+          name: investedData[2][i],
+          description: investedData[3][i],
+          category: investedData[4][i],
+          softCapWei: BigInt(investedData[5][i]),
+          totalFunded: BigInt(investedData[6][i]),
+          bond: BigInt(investedData[7][i]),
+          state: Number(investedData[8][i]),
+          invested: BigInt(investedData[9][i]),
+          milestones: investedData[10][i],
         }))
       : [];
 
@@ -378,27 +350,76 @@ export function useProjectsByInvestor(address?: `0x${string}`) {
     abi: CONTRACT_ABI,
     functionName: "getMyInvestedProjects",
     account: address,
-    args: undefined,
+    args: [],
     query: { enabled: !!address },
-    watch: true,
   });
 
+  const investedData = data as InvestedRawData | undefined;
+
   const investments =
-    data && data.length === 11
-      ? (data[0] as string[]).map((_, i) => ({
-          projectId: BigInt(data[0][i]),
-          creator: data[1][i],
-          name: data[2][i],
-          description: data[3][i],
-          category: data[4][i],
-          softCapWei: BigInt(data[5][i]),
-          totalFunded: BigInt(data[6][i]),
-          bond: BigInt(data[7][i]),
-          state: Number(data[8][i]),
-          invested: BigInt(data[9][i]),
-          milestones: data[10][i] as string[],
+    investedData && investedData.length === 11
+      ? investedData[0].map((_: string, i: number) => ({
+          projectId: BigInt(investedData[0][i]),
+          creator: investedData[1][i],
+          name: investedData[2][i],
+          description: investedData[3][i],
+          category: investedData[4][i],
+          softCapWei: BigInt(investedData[5][i]),
+          totalFunded: BigInt(investedData[6][i]),
+          bond: BigInt(investedData[7][i]),
+          state: Number(investedData[8][i]),
+          invested: BigInt(investedData[9][i]),
+          milestones: investedData[10][i],
         }))
       : [];
 
   return { investments, isLoading, refetch };
+}
+
+export function useClaimAllRefund() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
+    hash,
+  });
+
+  const claim = () =>
+    writeContract({
+      address: CONTRACT_ADDRESS,
+      abi: CONTRACT_ABI,
+      functionName: "claimAllRefund",
+    });
+
+  return { claim, isPending, isConfirming, isSuccess, error, hash };
+}
+
+export function useClaimCreator() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
+    hash,
+  });
+
+  const claim = () =>
+    writeContract({
+      address: CONTRACT_ADDRESS,
+      abi: CONTRACT_ABI,
+      functionName: "claimCreator",
+    });
+
+  return { claim, isPending, isConfirming, isSuccess, error, hash };
+}
+
+export function useClaimOwner() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
+    hash,
+  });
+
+  const claim = () =>
+    writeContract({
+      address: CONTRACT_ADDRESS,
+      abi: CONTRACT_ABI,
+      functionName: "claimOwner",
+    });
+
+  return { claim, isPending, isConfirming, isSuccess, error, hash };
 }

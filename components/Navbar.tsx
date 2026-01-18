@@ -97,15 +97,37 @@ export default function Navbar() {
 
           <div className="flex items-center space-x-2">
             {mounted ? (
-              <ConnectButton
-                showBalance={false}
-                accountStatus="address"
-                chainStatus="none"
-                label="Connect"
-                className="text-white rounded-lg px-4 py-2 font-medium hover:opacity-90 transition-opacity"
-              />
+              <ConnectButton.Custom>
+                {({
+                  account,
+                  chain,
+                  openConnectModal,
+                  openAccountModal,
+                  mounted: connectMounted,
+                }) => {
+                  const ready = connectMounted;
+                  const connected = account && chain;
+
+                  return connected || ready ? (
+                    <div className="inline-block rounded-lg">
+                      <ConnectButton
+                        showBalance={false}
+                        accountStatus="address"
+                        chainStatus="none"
+                      />
+                    </div>
+                  ) : (
+                    <button
+                      onClick={openConnectModal}
+                      className="h-10 px-4 rounded-lg"
+                    >
+                      Connect
+                    </button>
+                  );
+                }}
+              </ConnectButton.Custom>
             ) : (
-              <div className="h-10 w-32 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
+              <div className="h-10 w-32 rounded-lg animate-pulse bg-gray-200 dark:bg-gray-700" />
             )}
 
             <button

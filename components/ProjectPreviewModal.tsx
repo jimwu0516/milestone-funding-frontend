@@ -35,12 +35,20 @@ export default function ProjectPreviewModal({
   project,
   onClose,
 }: ProjectPreviewModalProps) {
-  const { data: milestoneDescriptions, isLoading: descLoading } =
+  const { data: milestoneDescriptionsRaw, isLoading: descLoading } =
     useMilestoneDescriptions(project.projectId);
+
+  const milestoneDescriptions = milestoneDescriptionsRaw as
+    | string[]
+    | undefined;
+
   const { data: projectMeta, isLoading: metaLoading } = useProjectMeta(
-    project.projectId
+    project.projectId,
   );
-  const milestoneHashes = projectMeta ? projectMeta[0] : [];
+  const [milestoneHashes = [], milestoneCIDs = []] = (projectMeta || []) as [
+    string[],
+    string[],
+  ];
 
   const categoryIndex = Number(project.category);
   const categoryLabel = CATEGORIES[categoryIndex] ?? "Unknown";

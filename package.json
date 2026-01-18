@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@rainbow-me/rainbowkit": "^2.2.10",
+    "abitype": "^1.2.3",
     "axios": "^1.13.2",
     "ethers": "^6.16.0",
     "next": "16.1.1",

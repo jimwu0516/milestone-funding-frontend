@@ -1,4 +1,3 @@
-//components/ProjectList.tsx
 "use client";
 
 import { useAllFundingProjects, useProjectCore } from "@/hooks/useContract";
@@ -25,7 +24,9 @@ export default function ProjectList({
   sortBy: "id" | "remaining";
   category: number | "all";
 }) {
-  const { data: projectIds, isLoading, error } = useAllFundingProjects();
+  const { data, isLoading, error } = useAllFundingProjects();
+  const projectIds = data as bigint[] | undefined;
+
   const [projects, setProjects] = useState<Record<string, Project>>({});
 
   const handleLoaded = (p: Project) => {
@@ -62,19 +63,21 @@ export default function ProjectList({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-2">
+      {/* Loading */}
       {isLoading && (
         <div className="py-12 text-center text-gray-600 dark:text-gray-400">
           Loading...
         </div>
       )}
 
+      {/* Error */}
       {error && (
         <div className="py-12 text-center text-red-600 dark:text-red-400">
           ERROR: {error.message}
         </div>
       )}
 
-      {!isLoading && !error && projectIds && projectIds.length === 0 && (
+      {!isLoading && !error && projectIds?.length === 0 && (
         <div className="py-12 text-center text-gray-600 dark:text-gray-400">
           No Funding Project
         </div>
@@ -129,7 +132,16 @@ function ProjectCardLoader({
       totalFunded,
       bond,
       state,
-    ] = data;
+    ] = data as [
+      string,
+      string,
+      string,
+      number,
+      bigint,
+      bigint,
+      bigint,
+      string,
+    ];
 
     const progress =
       softCapWei > BigInt(0)
