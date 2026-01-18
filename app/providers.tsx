@@ -6,10 +6,21 @@ import { mainnet, sepolia, Chain } from "wagmi/chains";
 import { RainbowKitProvider, getDefaultWallets } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ChainGuard } from "@/components/ChainGuard";
 
 const queryClient = new QueryClient();
 
-const chains: readonly [Chain, ...Chain[]] = [mainnet, sepolia];
+const DEFAULT_CHAIN_ID = Number(process.env.NEXT_PUBLIC_CHAIN_ID);
+
+const allChains: Chain[] = [mainnet, sepolia];
+
+const defaultChain =
+  allChains.find((c) => c.id === DEFAULT_CHAIN_ID) ?? sepolia;
+
+const chains: readonly [Chain, ...Chain[]] = [
+  defaultChain,
+  ...allChains.filter((c) => c.id !== defaultChain.id),
+];
 
 const { connectors } = getDefaultWallets({
   appName: "Milestone Funding",
@@ -32,6 +43,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <WagmiProvider config={wagmiConfig}>
         <RainbowKitProvider showRecentTransactions>
+          <ChainGuard />
           {children}
         </RainbowKitProvider>
       </WagmiProvider>
