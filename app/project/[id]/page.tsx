@@ -1,4 +1,3 @@
-// app/project/[id]/page.tsx
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
@@ -42,12 +41,16 @@ export default function ProjectDetailPage() {
   const projectId = params?.id ? BigInt(params.id as string) : undefined;
   const { address } = useAccount();
 
+  // ─── Hooks: 一定要放頂部 ─────────────────────
   const [showInputModal, setShowInputModal] = useState(false);
   const [showTxModal, setShowTxModal] = useState(false);
   const [fundAmount, setFundAmount] = useState("");
 
   const [showBuildingModal, setShowBuildingModal] = useState(false);
   const [prevState, setPrevState] = useState<string | null>(null);
+
+  const [emailMap, setEmailMap] = useState<Record<string, string>>({});
+  const currentEmail = emailMap[address ?? ""] ?? "";
 
   const states = [
     "Cancelled",
@@ -64,34 +67,56 @@ export default function ProjectDetailPage() {
     "Completed",
   ];
 
-  const {
-    data: projectCore,
-    isLoading: coreLoading,
-    refetch: refetchCore,
-  } = useProjectCore(projectId);
+  type ProjectCore = [
+    string, // creator
+    string, // name
+    string, // description
+    number, // category
+    bigint, // softCapWei
+    bigint, // totalFunded
+    bigint, // bond
+    number, // state
+  ];
 
-  const { data: investments, refetch: refetchInvestments } =
+  const { data, refetch: refetchCore } = useProjectCore(projectId);
+  const projectCore = data as ProjectCore | undefined;
+
+  const { data: investmentsData, refetch: refetchInvestments } =
     useAllInvestments(projectId);
 
-  const { data: milestoneDescriptions, isLoading: milestonesLoading } =
+  const investments = investmentsData as [string[], bigint[]] | undefined;
+
+  const { data: milestoneDescriptionsData, isLoading: milestonesLoading } =
     useMilestoneDescriptions(projectId);
+
+  const milestoneDescriptions = milestoneDescriptionsData as
+    | string[]
+    | undefined;
 
   const { fund, isPending, isConfirming, isSuccess, error, hash } =
     useFundProject();
 
+  // ─── Safe current index & state
+  const currentIndex = projectCore ? Number(projectCore[7]) : 0;
+  const currentState = states[currentIndex];
+
+  // ─── Effect for building modal
   useEffect(() => {
     if (!projectCore) return;
-    const currentIndex = Number(projectCore[7]);
-    const currentState = states[currentIndex];
-    const prevIndex = prevState !== null ? states.indexOf(prevState) : null;
-    if (prevState === "Funding" && currentState === "BuildingStage1") {
+
+    const idx = Number(projectCore[7]);
+    const stateNow = states[idx];
+
+    if (prevState === "Funding" && stateNow === "BuildingStage1") {
       setShowBuildingModal(true);
     }
-    setPrevState(currentState);
-  }, [projectCore]);
 
+    setPrevState(stateNow);
+  }, [projectCore, prevState]);
+
+  // ─── Early return if invalid projectId
   if (!projectId) return <div>Invalid ProjectID</div>;
-  if (coreLoading || !projectCore) return <div>Loading...</div>;
+  if (!projectCore) return <div>Loading...</div>;
 
   const [
     creator,
@@ -130,19 +155,13 @@ export default function ProjectDetailPage() {
     }
   };
 
-  const [emailMap, setEmailMap] = useState<Record<string, string>>({});
-
-  const currentEmail = emailMap[address ?? ""] ?? "";
-
   const handleEmailChange = (value: string) => {
     if (!address) return;
     setEmailMap((prev) => ({ ...prev, [address]: value }));
   };
 
-
   const handleFund = async () => {
     if (!fundAmount || !projectId) return;
-
     if (!currentEmail || !currentEmail.includes("@")) {
       alert("Please enter a valid email");
       return;
@@ -174,9 +193,7 @@ export default function ProjectDetailPage() {
       );
 
       const data = await res.json();
-      if (!data.success) {
-        console.error("Failed to register email", data);
-      }
+      if (!data.success) console.error("Failed to register email", data);
 
       await refetchCore?.();
       await refetchInvestments?.();
@@ -186,10 +203,8 @@ export default function ProjectDetailPage() {
   };
 
   const categoryLabel = CATEGORY_LABELS[category] ?? `Category ${category}`;
-
   const baseButtonClass =
     "px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-lg transform hover:cursor-pointer";
-
   const categoryStyle =
     CATEGORY_STYLES[category] ?? "bg-gray-800 text-gray-200";
 
@@ -350,25 +365,17 @@ export default function ProjectDetailPage() {
 
           {/* Milestones */}
           <div className="flex-1 flex gap-4 overflow-x-auto">
-            {milestonesLoading ? (
-              <div className="flex-1 flex items-center justify-center text-gray-400">
-                Loading milestones...
-              </div>
-            ) : (
-              milestoneDescriptions?.map((desc, idx) => (
-                <div
-                  key={idx}
-                  className="flex-1 min-w-[180px] bg-gray-800 rounded-xl p-6 flex flex-col justify-center items-center text-center shadow-md"
-                >
-                  <div className="text-sm text-gray-400 mb-4">
-                    Milestone {idx + 1}
-                  </div>
-                  <div className="text-base font-semibold text-white">
-                    {desc}
-                  </div>
+            {milestoneDescriptions?.map((desc, idx) => (
+              <div
+                key={idx}
+                className="flex-1 min-w-[180px] bg-gray-800 rounded-xl p-6 flex flex-col justify-center items-center text-center shadow-md"
+              >
+                <div className="text-sm text-gray-400 mb-4">
+                  Milestone {idx + 1}
                 </div>
-              ))
-            )}
+                <div className="text-base font-semibold text-white">{desc}</div>
+              </div>
+            ))}
           </div>
         </div>
 
