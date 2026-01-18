@@ -176,36 +176,6 @@ function ProjectsTable({
   filter,
   setPreviewProject,
 }: any) {
-  const activeStates = [1, 2, 3, 5, 6, 8, 9];
-
-  const projectsData = projectIds.map((id: bigint) => {
-    const { data, isLoading } = useProjectCore(id);
-    return { id, data, isLoading };
-  });
-
-  const filteredProjects = projectsData.filter(({ data }) => {
-    if (!data) return false;
-    const [creator, , , , , , , state] = data as any;
-    if (creator.toLowerCase() !== userAddress.toLowerCase()) return false;
-    const isActive = activeStates.includes(state);
-    return filter === "active" ? isActive : !isActive;
-  });
-
-  const isAnyLoading = projectsData.some((p) => p.isLoading);
-  if (isAnyLoading) {
-    return (
-      <div className="flex justify-center items-center py-12 text-gray-400">
-        Loading...
-      </div>
-    );
-  }
-
-  if (!filteredProjects || filteredProjects.length === 0) {
-    return (
-      <div className="text-center py-12 text-gray-400">No projects found</div>
-    );
-  }
-
   return (
     <div className="overflow-x-auto rounded-2xl border border-gray-700 bg-gray-850">
       <div className="overflow-y-auto max-h-[60vh] overscroll-contain">
@@ -231,8 +201,9 @@ function ProjectsTable({
               )}
             </tr>
           </thead>
+
           <tbody className="divide-y divide-gray-700">
-            {filteredProjects.map(({ id }) => (
+            {projectIds.map((id: bigint) => (
               <ProjectRow
                 key={id.toString()}
                 projectId={id}
@@ -247,6 +218,7 @@ function ProjectsTable({
     </div>
   );
 }
+
 
 /* ---------------- Project Row ---------------- */
 function ProjectRow({
@@ -424,3 +396,4 @@ function ProjectRow({
     </>
   );
 }
+
