@@ -63,21 +63,20 @@ export default function TxModal({
 
         {status === "success" && (
           <>
-            <div className="inline-block w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mb-4">
+            <div className="inline-flex w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full items-center justify-center mb-4">
               <svg
-                className="w-6 h-6 text-green-600 dark:text-green-400"
+                className="w-8 h-8 text-green-600 dark:text-green-400"
+                viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                viewBox="0 0 24 24"
+                strokeWidth={3}
+                strokeLinecap="round"
+                strokeLinejoin="round"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
+                <path d="M5 13l5 5L19 7" />
               </svg>
             </div>
+
             <h3 className="text-xl font-semibold text-green-600 dark:text-green-400 mb-2">
               Success！
             </h3>
@@ -92,6 +91,21 @@ export default function TxModal({
 
         {status === "error" && (
           <>
+            <div className="inline-flex w-12 h-12 bg-red-100 dark:bg-red-900 rounded-full items-center justify-center mb-4">
+              <svg
+                className="w-8 h-8 text-red-600 dark:text-red-400"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={3}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="6" y1="6" x2="18" y2="18" />
+                <line x1="6" y1="18" x2="18" y2="6" />
+              </svg>
+            </div>
+
             <h3 className="text-xl font-semibold text-red-600 dark:text-red-400 mb-2">
               Error
             </h3>
