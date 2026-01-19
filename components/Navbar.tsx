@@ -118,16 +118,39 @@ export default function Navbar() {
                     <button
                       onClick={openAccountModal}
                       className="
-                      h-10 px-4 rounded-lg bg-gray-800 text-purple-300border border-purple-500/30 hover:bg-gray-700 hover:border-purple-400/50 transition-all font-medium hover:cursor-pointer"
+      flex items-center h-8 px-2 rounded-lg
+      bg-gray-800 text-white
+      border border-gray-600
+      hover:bg-gray-700 hover:border-gray-500
+      transition-all shadow-sm
+      max-w-[180px] truncate
+    "
                     >
-                      <span className="max-w-[120px] truncate">
-                        {account.displayName}
-                      </span>
+                      <span className="truncate">{account.displayName}</span>
+                      <svg
+                        className="ml-2 w-4 h-4 text-green-400"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
                     </button>
                   ) : (
                     <button
                       onClick={openConnectModal}
-                      className="h-10 px-4 rounded-lg bg-purple-600 text-white font-medium hover:bg-purple-500 active:bg-purple-700 transition-colors shadow-sm hover:cursor-pointer"
+                      className="
+      h-10 px-6 rounded-lg
+      bg-purple-600 text-white font-medium
+      hover:bg-purple-500 active:bg-purple-700
+      transition-colors shadow-sm
+    "
                     >
                       Connect
                     </button>

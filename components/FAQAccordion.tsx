@@ -66,7 +66,7 @@ export default function FAQAccordion() {
   return (
     <section className="max-w-6xl mx-auto px-6 py-20">
       <h2 className="text-4xl font-extrabold text-center bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-pink-500">
-        Frequently Asked Questions
+        FAQ
       </h2>
 
       {faqData.map((category, catIdx) => (
