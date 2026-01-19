@@ -92,6 +92,29 @@ export default function ProjectDetailPage() {
   const { fund, isPending, isConfirming, isSuccess, error, hash } =
     useFundProject();
 
+  const [emailMap, setEmailMap] = useState<Record<string, string>>({});
+  const currentEmail = emailMap[address ?? ""] ?? "";
+
+  useEffect(() => {
+    if (!address || !projectId) return;
+
+    const fetchEmail = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/investorEmail?projectId=${projectId}&investor=${address}`,
+        );
+        const data = await res.json();
+        if (data.email) {
+          setEmailMap((prev) => ({ ...prev, [address]: data.email }));
+        }
+      } catch (err) {
+        console.error("Failed to fetch investor email", err);
+      }
+    };
+
+    fetchEmail();
+  }, [address, projectId]);
+
   // ─── Safe current index & state
   const currentIndex = projectCore ? Number(projectCore[7]) : 0;
   const currentState = states[currentIndex];
@@ -203,29 +226,6 @@ export default function ProjectDetailPage() {
     "px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-lg transform hover:cursor-pointer";
   const categoryStyle =
     CATEGORY_STYLES[category] ?? "bg-gray-800 text-gray-200";
-
-  const [emailMap, setEmailMap] = useState<Record<string, string>>({});
-  const currentEmail = emailMap[address ?? ""] ?? "";
-
-  useEffect(() => {
-    if (!address || !projectId) return;
-
-    const fetchEmail = async () => {
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/investorEmail?projectId=${projectId}&investor=${address}`,
-        );
-        const data = await res.json();
-        if (data.email) {
-          setEmailMap((prev) => ({ ...prev, [address]: data.email }));
-        }
-      } catch (err) {
-        console.error("Failed to fetch investor email", err);
-      }
-    };
-
-    fetchEmail();
-  }, [address, projectId]);
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -402,37 +402,49 @@ export default function ProjectDetailPage() {
         <div className="bg-gray-850 rounded-xl border border-gray-700 p-6 shadow-lg">
           <h2 className="text-xl font-semibold mb-4">Investors</h2>
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="bg-gray-800">
+            <table className="w-full text-left border-collapse">
+              <thead>
                 <tr>
-                  <th className="px-4 py-3 text-sm font-medium text-white">
+                  <th className="px-4 py-3 text-sm font-medium text-white bg-gray-800 first:rounded-tl-xl last:rounded-tr-xl">
                     Address
                   </th>
-                  <th className="px-4 py-3 text-sm font-medium text-white">
+                  <th className="px-4 py-3 text-sm font-medium text-white bg-gray-800 first:rounded-tl-xl last:rounded-tr-xl">
                     Amount
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-700">
                 {investments && investments[0]?.length > 0 ? (
-                  investments[0].map((investor, index) => (
-                    <tr key={investor} className="hover:bg-gray-700 transition">
-                      <td
-                        className="px-4 py-3 text-sm font-mono break-all text-blue-400 cursor-pointer hover:underline"
-                        onClick={() => router.push(`/investor/${investor}`)}
+                  investments[0].map((investor, index) => {
+                    const isLast = index === investments[0].length - 1;
+                    return (
+                      <tr
+                        key={investor}
+                        className="hover:bg-gray-700 transition"
                       >
-                        {investor}
-                      </td>
-                      <td className="px-4 py-3 text-sm font-semibold text-white">
-                        {formatEth(investments[1][index])} ETH
-                      </td>
-                    </tr>
-                  ))
+                        <td
+                          className={`px-4 py-3 text-sm font-mono break-all text-blue-400 cursor-pointer hover:underline ${
+                            isLast ? "rounded-bl-xl" : ""
+                          }`}
+                          onClick={() => router.push(`/investor/${investor}`)}
+                        >
+                          {investor}
+                        </td>
+                        <td
+                          className={`px-4 py-3 text-sm font-semibold text-white ${
+                            isLast ? "rounded-br-xl" : ""
+                          }`}
+                        >
+                          {formatEth(investments[1][index])} ETH
+                        </td>
+                      </tr>
+                    );
+                  })
                 ) : (
                   <tr>
                     <td
                       colSpan={2}
-                      className="px-4 py-3 text-sm text-gray-400 text-center"
+                      className="px-4 py-3 text-sm text-gray-400 text-center rounded-b-xl bg-gray-800"
                     >
                       No investor yet
                     </td>
