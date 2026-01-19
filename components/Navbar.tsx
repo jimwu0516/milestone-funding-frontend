@@ -106,20 +106,46 @@ export default function Navbar() {
                   mounted: connectMounted,
                 }) => {
                   const ready = connectMounted;
-                  const connected = account && chain;
+                  const connected = ready && account && chain;
 
-                  return connected || ready ? (
-                    <div className="inline-block rounded-lg">
-                      <ConnectButton
-                        showBalance={false}
-                        accountStatus="address"
-                        chainStatus="none"
-                      />
-                    </div>
+                  if (!ready) {
+                    return (
+                      <div className="h-10 w-32 rounded-lg animate-pulse bg-gray-200 dark:bg-gray-700" />
+                    );
+                  }
+
+                  return connected ? (
+                    <button
+                      onClick={openAccountModal}
+                      className="
+    h-10 px-4 rounded-lg
+    bg-gray-800
+    text-purple-300
+    border border-purple-500/30
+    hover:bg-gray-700
+    hover:border-purple-400/50
+    transition-all
+    font-medium
+    hover:cursor-pointer
+  "
+                    >
+                      <span className="max-w-[120px] truncate">
+                        {account.displayName}
+                      </span>
+                    </button>
                   ) : (
                     <button
                       onClick={openConnectModal}
-                      className="h-10 px-4 rounded-lg"
+                      className="
+    h-10 px-4 rounded-lg
+    bg-purple-600 text-white
+    font-medium
+    hover:bg-purple-500
+    active:bg-purple-700
+    transition-colors
+    shadow-sm
+    hover:cursor-pointer
+  "
                     >
                       Connect
                     </button>
