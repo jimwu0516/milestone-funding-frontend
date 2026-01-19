@@ -41,16 +41,12 @@ export default function ProjectDetailPage() {
   const projectId = params?.id ? BigInt(params.id as string) : undefined;
   const { address } = useAccount();
 
-  // ─── Hooks: 一定要放頂部 ─────────────────────
   const [showInputModal, setShowInputModal] = useState(false);
   const [showTxModal, setShowTxModal] = useState(false);
   const [fundAmount, setFundAmount] = useState("");
 
   const [showBuildingModal, setShowBuildingModal] = useState(false);
   const [prevState, setPrevState] = useState<string | null>(null);
-
-  const [emailMap, setEmailMap] = useState<Record<string, string>>({});
-  const currentEmail = emailMap[address ?? ""] ?? "";
 
   const states = [
     "Cancelled",
@@ -207,6 +203,29 @@ export default function ProjectDetailPage() {
     "px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-lg transform hover:cursor-pointer";
   const categoryStyle =
     CATEGORY_STYLES[category] ?? "bg-gray-800 text-gray-200";
+
+  const [emailMap, setEmailMap] = useState<Record<string, string>>({});
+  const currentEmail = emailMap[address ?? ""] ?? "";
+
+  useEffect(() => {
+    if (!address || !projectId) return;
+
+    const fetchEmail = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/investorEmail?projectId=${projectId}&investor=${address}`,
+        );
+        const data = await res.json();
+        if (data.email) {
+          setEmailMap((prev) => ({ ...prev, [address]: data.email }));
+        }
+      } catch (err) {
+        console.error("Failed to fetch investor email", err);
+      }
+    };
+
+    fetchEmail();
+  }, [address, projectId]);
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
