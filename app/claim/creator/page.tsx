@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { formatEther } from "viem";
 import { useClaimableCreator, useClaimCreator } from "@/hooks/useContract";
 import { useAccount } from "wagmi";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 export default function ClaimCreatorPage() {
   const { address, isConnected } = useAccount();
@@ -38,17 +39,57 @@ export default function ClaimCreatorPage() {
 
   const isDisabled = isPending || isConfirming || Number(amountEth) === 0;
 
-  if (!isConnected)
+  if (!isConnected) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      <div className="flex flex-col min-h-screen bg-gray-900 text-gray-400">
         <Navbar />
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
-          <div className="text-center text-gray-600 dark:text-gray-400">
-            Please connect your wallet
+
+        <main className="flex flex-col items-center justify-center flex-1 px-4 text-center">
+          <div className="bg-gray-800 p-8 rounded-2xl shadow-lg max-w-sm w-full">
+            <h2 className="text-2xl font-bold text-white mb-4">
+              Wallet Not Connected
+            </h2>
+            <p className="mb-6">
+              Please connect your wallet to claim your funds.
+            </p>
+
+            <ConnectButton.Custom>
+              {({
+                account,
+                chain,
+                openConnectModal,
+                openAccountModal,
+                mounted,
+              }) => {
+                if (!mounted)
+                  return (
+                    <div className="h-10 w-32 rounded-lg animate-pulse bg-gray-700" />
+                  );
+
+                const connected = account && chain;
+
+                return connected ? (
+                  <button
+                    onClick={openAccountModal}
+                    className="h-10 px-6 rounded-lg bg-gray-800 text-purple-300 border border-purple-500/30 hover:bg-gray-700 hover:border-purple-400/50 transition-all font-medium"
+                  >
+                    {account.displayName}
+                  </button>
+                ) : (
+                  <button
+                    onClick={openConnectModal}
+                    className="h-10 px-6 rounded-lg bg-purple-600 text-white font-medium hover:bg-purple-500 active:bg-purple-700 transition-colors shadow-sm"
+                  >
+                    Connect Wallet
+                  </button>
+                );
+              }}
+            </ConnectButton.Custom>
           </div>
         </main>
       </div>
     );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900">
@@ -102,10 +143,10 @@ export default function ClaimCreatorPage() {
             error
               ? "error"
               : isSuccess
-              ? "success"
-              : isConfirming
-              ? "confirming"
-              : "pending"
+                ? "success"
+                : isConfirming
+                  ? "confirming"
+                  : "pending"
           }
           hash={hash || null}
           errorMessage={
