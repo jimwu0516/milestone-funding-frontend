@@ -45,6 +45,23 @@ export default function ProjectList({
     });
   };
 
+  useEffect(() => {
+    if (!projectIds) return;
+
+    setProjects((prev) => {
+      const next: Record<string, Project> = {};
+
+      for (const id of projectIds) {
+        const key = id.toString();
+        if (prev[key]) {
+          next[key] = prev[key];
+        }
+      }
+
+      return next;
+    });
+  }, [projectIds]);
+
   const visible = useMemo(() => {
     let arr = Object.values(projects);
 
