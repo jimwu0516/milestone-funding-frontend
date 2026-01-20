@@ -13,7 +13,8 @@ export default function Funding() {
     <div className="min-h-screen bg-gray-900 text-white">
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 flex flex-col gap-6 h-[calc(100vh-3rem)]">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 flex flex-col h-screen">
+        {/* Header */}
         <div className="flex-shrink-0 mb-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
@@ -39,7 +40,7 @@ export default function Funding() {
                 value={category}
                 onChange={(e) =>
                   setCategory(
-                    e.target.value === "all" ? "all" : Number(e.target.value)
+                    e.target.value === "all" ? "all" : Number(e.target.value),
                   )
                 }
                 className="px-4 py-2 rounded-lg border border-gray-700 bg-gray-800 text-white text-sm hover:border-blue-500 transition"
@@ -58,7 +59,7 @@ export default function Funding() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-visible">
+        <div className="flex-1 overflow-auto">
           <ProjectList sortBy={sortBy} category={category} />
         </div>
       </main>
