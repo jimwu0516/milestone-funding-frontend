@@ -326,7 +326,9 @@ export default function ProjectDetailPage() {
             ← Back
           </button>
 
-          <h1 className="text-4xl font-bold text-center flex-1">{name}</h1>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-center flex-1 truncate">
+            {name}
+          </h1>
 
           <button
             onClick={handleFundClick}
@@ -399,7 +401,7 @@ export default function ProjectDetailPage() {
         </div>
 
         {/* Investors */}
-        <div className="bg-gray-850 rounded-xl border border-gray-700 p-6 shadow-lg">
+        <div className="flex-1 overflow-auto bg-gray-850 rounded-xl border border-gray-700 p-6 shadow-lg">
           <h2 className="text-xl font-semibold mb-4">Investors</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
