@@ -76,15 +76,23 @@ export default function ProjectCard({
         "
       >
         <div className="flex justify-between items-start mb-4">
-          <h3 className="text-2xl font-bold text-white">{name}</h3>
+          <h3 className="text-2xl font-bold text-white truncate max-w-[70%]">
+            {name}
+          </h3>
           <span
-            className={`px-3 py-1 text-xs font-medium rounded-full ${categoryStyle}`}
+            className={`px-3 py-1 text-xs font-medium rounded-full ${categoryStyle} max-w-[30%] truncate text-center`}
+            title={categoryLabel}
           >
             {categoryLabel}
           </span>
         </div>
 
-        <p className="text-gray-400 text-sm mb-4">{description}</p>
+        <p
+          className="text-gray-400 text-sm mb-4 line-clamp-2"
+          title={description}
+        >
+          {description}
+        </p>
 
         <div className="space-y-2 mb-4">
           <div className="flex justify-between text-sm font-mono">
