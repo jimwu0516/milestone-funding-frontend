@@ -142,6 +142,10 @@ export default function MyInvestmentsPage() {
       return sortOrder === "desc" ? idB - idA : idA - idB;
     });
 
+  const votingCount = investments.filter((inv) =>
+    FILTER_STATES.voting.includes(inv.state),
+  ).length;
+
   const formatEth = (amount: bigint | string) =>
     parseFloat(typeof amount === "bigint" ? formatEther(amount) : amount)
       .toFixed(5)
@@ -213,7 +217,16 @@ export default function MyInvestmentsPage() {
           </div>
         </div>
 
-        <FilterTabs filter={filter} setFilter={setFilter} />
+        <FilterTabs
+          filter={filter}
+          setFilter={setFilter}
+          votingCount={
+            investments.filter((inv) =>
+              FILTER_STATES.voting.includes(inv.state),
+            ).length
+          }
+        />
+
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20 space-y-4">
             <div className="w-8 h-8 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
@@ -262,25 +275,40 @@ export default function MyInvestmentsPage() {
 }
 
 /* ---------------- Filter Tabs ---------------- */
-function FilterTabs({ filter, setFilter }: any) {
+function FilterTabs({
+  filter,
+  setFilter,
+  votingCount,
+}: {
+  filter: "ongoing" | "voting" | "history";
+  setFilter: (v: "ongoing" | "voting" | "history") => void;
+  votingCount: number;
+}) {
   const tabs: ("ongoing" | "voting" | "history")[] = [
     "ongoing",
     "voting",
     "history",
   ];
+
   return (
     <div className="flex border-b border-gray-700 mb-6">
       {tabs.map((tab) => (
         <button
           key={tab}
           onClick={() => setFilter(tab)}
-          className={`px-4 py-2 -mb-px font-medium border-b-2 transition-all ${
+          className={`relative px-4 py-2 -mb-px font-medium border-b-2 transition-all ${
             filter === tab
               ? "border-blue-500 text-blue-400"
               : "border-transparent text-gray-400 hover:text-gray-200"
           }`}
         >
           {tab.charAt(0).toUpperCase() + tab.slice(1)}
+
+          {tab === "voting" && votingCount > 0 && (
+            <span className="absolute -top-1 -right-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
+              {votingCount}
+            </span>
+          )}
         </button>
       ))}
     </div>
