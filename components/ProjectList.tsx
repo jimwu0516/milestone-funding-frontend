@@ -1,3 +1,4 @@
+// components/ProjectList.tsx
 "use client";
 
 import { useAllFundingProjects, useProjectCore } from "@/hooks/useContract";
@@ -79,52 +80,55 @@ export default function ProjectList({
   }, [projects, sortBy, category]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-2">
-      {/* Loading */}
+    <>
       {isLoading && (
-        <div className="py-12 text-center text-gray-600 dark:text-gray-400">
-          Loading...
+        <div className="flex h-full items-center justify-center">
+          <div className="flex flex-col items-center space-y-4">
+            <div className="w-8 h-8 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+            <p className="text-gray-500 font-medium">Loading...</p>
+          </div>
         </div>
       )}
 
-      {/* Error */}
-      {error && (
-        <div className="py-12 text-center text-red-600 dark:text-red-400">
+      {!isLoading && error && (
+        <div className="flex h-full items-center justify-center text-red-600 dark:text-red-400">
           ERROR: {error.message}
         </div>
       )}
 
       {!isLoading && !error && projectIds?.length === 0 && (
-        <div className="py-12 text-center text-gray-600 dark:text-gray-400">
+        <div className="flex h-full items-center justify-center text-gray-600 dark:text-gray-400">
           No Funding Project
         </div>
       )}
 
-      {/* Project loaders */}
-      {projectIds?.map((id) => (
-        <ProjectCardLoader
-          key={id.toString()}
-          projectId={id}
-          onLoaded={handleLoaded}
-        />
-      ))}
+      {!isLoading && !error && projectIds && projectIds.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-2">
+          {projectIds.map((id) => (
+            <ProjectCardLoader
+              key={id.toString()}
+              projectId={id}
+              onLoaded={handleLoaded}
+            />
+          ))}
 
-      {/* Visible project cards */}
-      {visible.map((p) => (
-        <ProjectCard
-          key={`card-${p.projectId.toString()}`}
-          projectId={p.projectId}
-          name={p.name}
-          description={p.description}
-          creator={p.creator}
-          softCapWei={p.softCapWei}
-          totalFunded={p.totalFunded}
-          bond={p.bond}
-          state={p.state}
-          category={p.category}
-        />
-      ))}
-    </div>
+          {visible.map((p) => (
+            <ProjectCard
+              key={`card-${p.projectId.toString()}`}
+              projectId={p.projectId}
+              name={p.name}
+              description={p.description}
+              creator={p.creator}
+              softCapWei={p.softCapWei}
+              totalFunded={p.totalFunded}
+              bond={p.bond}
+              state={p.state}
+              category={p.category}
+            />
+          ))}
+        </div>
+      )}
+    </>
   );
 }
 

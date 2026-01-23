@@ -215,7 +215,12 @@ export default function MyInvestmentsPage() {
 
         <FilterTabs filter={filter} setFilter={setFilter} />
         {isLoading ? (
-          <div className="text-gray-400 py-12">Loading...</div>
+          <div className="flex flex-col items-center justify-center py-20 space-y-4">
+            <div className="w-8 h-8 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+            <p className="text-gray-500 font-medium">
+              Fetching your investments...
+            </p>
+          </div>
         ) : filteredInvestments.length > 0 ? (
           <div className="flex-1 min-h-0">
             <ProjectsTable
