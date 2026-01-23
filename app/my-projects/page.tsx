@@ -1,4 +1,3 @@
-// app/my-projects/page.tsx
 "use client";
 
 import { useAccount } from "wagmi";
@@ -20,7 +19,7 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 export default function MyProjectsPage() {
   const { address, isConnected } = useAccount();
-  const { projectIds, isLoading: idsLoading } = useMyProjects();
+  const { activeIds, inactiveIds, isLoading: idsLoading } = useMyProjects();
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState<"active" | "inactive">("active");
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -29,30 +28,29 @@ export default function MyProjectsPage() {
   const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
 
   useEffect(() => setMounted(true), []);
+
   if (!mounted) return null;
-  const sortedProjectIds =
-    projectIds && projectIds.length > 0
-      ? [...projectIds].sort((a: bigint, b: bigint) => {
-          const idA = Number(a);
-          const idB = Number(b);
-          return sortOrder === "desc" ? idB - idA : idA - idB;
-        })
-      : [];
+
+  const currentIds = filter === "active" ? activeIds : inactiveIds;
+
+  const sortedProjectIds = [...currentIds].sort((a: bigint, b: bigint) => {
+    const idA = Number(a);
+    const idB = Number(b);
+    return sortOrder === "desc" ? idB - idA : idA - idB;
+  });
 
   if (!isConnected) {
     return (
       <div className="flex flex-col min-h-screen bg-gray-900 text-gray-400">
         <Navbar />
-
         <main className="flex flex-col items-center justify-center flex-1 px-4 text-center">
           <div className="bg-gray-800 p-8 rounded-2xl shadow-lg max-w-sm w-full">
             <h2 className="text-2xl font-bold text-white mb-4">
               Wallet Not Connected
             </h2>
             <p className="mb-6">
-              Please connect your wallet to view your created projects or submit milestones.
+              Please connect your wallet to view your created projects.
             </p>
-
             <ConnectButton.Custom>
               {({
                 account,
@@ -65,20 +63,18 @@ export default function MyProjectsPage() {
                   return (
                     <div className="h-10 w-32 rounded-lg animate-pulse bg-gray-700" />
                   );
-
                 const connected = account && chain;
-
                 return connected ? (
                   <button
                     onClick={openAccountModal}
-                    className="h-10 px-6 rounded-lg bg-gray-800 text-purple-300 border border-purple-500/30 hover:bg-gray-700 hover:border-purple-400/50 transition-all font-medium"
+                    className="h-10 px-6 rounded-lg bg-gray-800 text-purple-300 border border-purple-500/30 hover:bg-gray-700 transition-all font-medium"
                   >
                     {account.displayName}
                   </button>
                 ) : (
                   <button
                     onClick={openConnectModal}
-                    className="h-10 px-6 rounded-lg bg-purple-600 text-white font-medium hover:bg-purple-500 active:bg-purple-700 transition-colors shadow-sm"
+                    className="h-10 px-6 rounded-lg bg-purple-600 text-white font-medium hover:bg-purple-500 transition-colors shadow-sm"
                   >
                     Connect Wallet
                   </button>
@@ -113,7 +109,8 @@ export default function MyProjectsPage() {
           <CreateProjectForm
             onClose={() => setShowCreateForm(false)}
             onSuccess={() => {
-              queryClient.invalidateQueries({ queryKey: ["myProjects"] });
+              queryClient.invalidateQueries({ queryKey: ["readContract"] });
+              setFilter("active");
               setShowCreateForm(false);
             }}
           />
@@ -121,7 +118,7 @@ export default function MyProjectsPage() {
 
         {idsLoading ? (
           <LoadingState />
-        ) : projectIds && projectIds.length > 0 ? (
+        ) : sortedProjectIds.length > 0 ? (
           <ProjectsTable
             projectIds={sortedProjectIds}
             userAddress={address!}
@@ -137,31 +134,11 @@ export default function MyProjectsPage() {
 }
 
 /* ---------------- Header ---------------- */
-function Header({
-  setShowCreateForm,
-  sortOrder,
-  setSortOrder,
-}: {
-  setShowCreateForm: (v: boolean) => void;
-  sortOrder: "asc" | "desc";
-  setSortOrder: (v: "asc" | "desc") => void;
-}) {
+function Header({ setShowCreateForm, sortOrder, setSortOrder }: any) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
       <h1 className="text-3xl font-bold">My Projects</h1>
-
       <div className="flex gap-3">
-        {/*
-        <select
-          value={sortOrder}
-          onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
-          className="px-4 py-2 rounded-lg border border-gray-700 bg-gray-800 text-white text-sm hover:border-blue-500 transition"
-        >
-          <option value="desc">Project ID ↓</option>
-          <option value="asc">Project ID ↑</option>
-        </select>
-        */}
-
         <button
           onClick={() => setShowCreateForm(true)}
           className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl text-white font-semibold shadow-lg hover:scale-105 transition-all cursor-pointer"
@@ -197,16 +174,17 @@ function FilterTabs({ filter, setFilter }: any) {
 
 function LoadingState() {
   return (
-    <div className="flex justify-center items-center py-12 text-gray-400">
-      Loading...
+    <div className="flex flex-col items-center justify-center py-20 space-y-4">
+      <div className="w-8 h-8 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+      <p className="text-gray-500 font-medium">Fetching your projects...</p>
     </div>
   );
 }
 
 function EmptyState() {
   return (
-    <div className="text-center py-12 text-gray-400">
-      No projects have been created yet.
+    <div className="text-center py-12 text-gray-400  rounded-2xl border border-dashed border-gray-700">
+      No projects found in this category.
     </div>
   );
 }
@@ -243,7 +221,6 @@ function ProjectsTable({
               )}
             </tr>
           </thead>
-
           <tbody className="divide-y divide-gray-700">
             {projectIds.map((id: bigint) => (
               <ProjectRow
@@ -275,7 +252,6 @@ function ProjectRow({
 
   const {
     cancel,
-    isPending,
     isConfirming,
     isSuccess,
     error: cancelError,
@@ -286,10 +262,11 @@ function ProjectRow({
     return (
       <tr>
         <td colSpan={filter === "active" ? 5 : 4} className="px-4 py-6">
-          <div className="h-6 bg-gray-700 rounded w-full animate-pulse"></div>
+          <div className="h-6 bg-gray-700 rounded w-full animate-pulse" />
         </td>
       </tr>
     );
+
   if (error || !data) return null;
 
   const [
@@ -301,36 +278,19 @@ function ProjectRow({
     totalFunded,
     bond,
     state,
-  ] = data as [string, string, string, number, bigint, bigint, bigint, number];
+  ] = data as any;
 
-  if (creator.toLowerCase() !== userAddress.toLowerCase()) return null;
-
-  const activeStates = [1, 2, 3, 5, 6, 8, 9];
-  const isActive = activeStates.includes(state);
-  if ((filter === "active" && !isActive) || (filter === "inactive" && isActive))
-    return null;
-
-  const { percent: progressPercent, color: progressColor } =
-    getProjectProgress(state);
   const formatEth = (amount: bigint | string) =>
     parseFloat(typeof amount === "bigint" ? formatEther(amount) : amount)
       .toFixed(5)
       .replace(/\.?0+$/, "");
 
-  const handleCancel = async () => {
-    setShowTxModal(true);
-    try {
-      await cancel(projectId);
-    } catch {
-      alert("Error");
-      setShowTxModal(false);
-    }
-  };
+  const { percent: progressPercent, color: progressColor } =
+    getProjectProgress(state);
 
   const handleCloseTxModal = () => {
     setShowTxModal(false);
     if (isSuccess) {
-      queryClient.invalidateQueries({ queryKey: ["myProjects"] });
       queryClient.invalidateQueries({ queryKey: ["readContract"] });
     }
   };
@@ -393,18 +353,18 @@ function ProjectRow({
                 <div onClick={(e) => e.stopPropagation()}>
                   <CancelProjectButton projectId={projectId} />
                 </div>
-              ) : state === 2 || state === 5 || state === 8 ? (
+              ) : [2, 5, 8].includes(state) ? (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowMilestoneModal(true);
                   }}
-                  className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl text-sm font-semibold shadow-lg hover:scale-105 transition-all cursor-pointer"
+                  className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl text-sm font-semibold shadow-lg hover:scale-105 transition-all"
                 >
                   Submit
                 </button>
               ) : (
-                <span>-</span>
+                <span className="text-gray-600">-</span>
               )}
             </div>
 
