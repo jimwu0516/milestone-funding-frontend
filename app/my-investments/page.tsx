@@ -86,7 +86,8 @@ export default function MyInvestmentsPage() {
               Wallet Not Connected
             </h2>
             <p className="mb-6">
-              Please connect your wallet to view your investments and participate in voting.
+              Please connect your wallet to view your investments and
+              participate in voting.
             </p>
 
             <ConnectButton.Custom>
@@ -230,7 +231,9 @@ export default function MyInvestmentsPage() {
             />
           </div>
         ) : (
-          <div className="text-gray-400 py-12">No investments found.</div>
+          <div className="text-center py-12 text-gray-400  rounded-2xl border border-dashed border-gray-700">
+            No investments found.
+          </div>
         )}
 
         {showVoteModal && selectedProject !== null && (
