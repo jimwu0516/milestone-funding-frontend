@@ -225,6 +225,18 @@ export default function ProjectDetailPage() {
   const categoryStyle =
     CATEGORY_STYLES[category] ?? "bg-gray-800 text-gray-200";
 
+  const sortedInvestments = investments
+    ? investments[0]
+        .map((investor, index) => ({
+          investor,
+          amount: investments[1][index],
+        }))
+        .sort((a, b) => {
+          if (a.amount === b.amount) return 0;
+          return a.amount > b.amount ? -1 : 1;
+        })
+    : [];
+
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <Navbar />
@@ -414,10 +426,9 @@ export default function ProjectDetailPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-700">
-                {investments && investments[0]?.length > 0 ? (
-                  investments[0].map((investor, index) => {
-                    const isLast = index === investments[0].length - 1;
-                    const amount = investments[1][index];
+                {sortedInvestments.length > 0 ? (
+                  sortedInvestments.map(({ investor, amount }, index) => {
+                    const isLast = index === sortedInvestments.length - 1;
                     const percentage =
                       totalFunded > BigInt(0)
                         ? Number((amount * BigInt(100)) / totalFunded)
@@ -451,7 +462,7 @@ export default function ProjectDetailPage() {
                                 style={{ width: `${percentage}%` }}
                               />
                             </div>
-                            <span className="text-xs font-mono text-blue-500 whitespace-nowrap">
+                            <span className="text-sm font-mono text-blue-500 whitespace-nowrap">
                               {formatEth(amount)} ETH
                             </span>
                           </div>
