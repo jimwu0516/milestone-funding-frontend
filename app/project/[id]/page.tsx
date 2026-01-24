@@ -133,7 +133,11 @@ export default function ProjectDetailPage() {
   }, [projectCore, prevState]);
 
   if (!projectId) return <div>Invalid ProjectID</div>;
-  if (!projectCore) return <div>Loading...</div>;
+  if (!projectCore) return  
+    <div className="flex flex-col items-center justify-center py-20 space-y-4">
+      <div className="w-8 h-8 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+      <p className="text-gray-500 font-medium">Loading...</p>
+    </div>;
 
   const [
     creator,
