@@ -1,7 +1,7 @@
 // components/Navbar.tsx
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { usePathname } from "next/navigation";
 
 export default function Navbar() {
@@ -9,6 +9,7 @@ export default function Navbar() {
   const [showClaimMenu, setShowClaimMenu] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const closeTimer = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -31,8 +32,26 @@ export default function Navbar() {
     );
   };
 
+  const handleMouseEnter = () => {
+    if (closeTimer.current) {
+      clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+    setShowClaimMenu(true);
+  };
+
+  const handleMouseLeave = () => {
+    closeTimer.current = setTimeout(() => {
+      setShowClaimMenu(false);
+    }, 150);
+  };
+
   const claimMenu = (
-    <div className="relative">
+    <div
+      className="relative"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       <button
         className={`px-3 py-2 text-sm font-medium transition-colors
         ${
@@ -40,7 +59,6 @@ export default function Navbar() {
             ? "text-white"
             : "text-gray-500 dark:text-gray-400 hover:text-gray-200"
         }`}
-        onClick={() => setShowClaimMenu(!showClaimMenu)}
       >
         Claim Fund
       </button>
@@ -49,19 +67,19 @@ export default function Navbar() {
         <div className="absolute top-full mt-2 w-44 rounded-xl bg-white dark:bg-gray-900 shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50">
           <Link
             href="/claim/creator"
-            className="block px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-purple-500/10 hover:text-purple-500"
+            className="block px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-600 hover:text-white-500"
           >
             I’m Creator
           </Link>
           <Link
             href="/claim/investor"
-            className="block px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-purple-500/10 hover:text-purple-500"
+            className="block px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-600 hover:text-white-500"
           >
             I’m Investor
           </Link>
           <Link
             href="/claim/owner"
-            className="block px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-purple-500/10 hover:text-purple-500"
+            className="block px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-600 hover:text-white-500"
           >
             I’m Owner
           </Link>
