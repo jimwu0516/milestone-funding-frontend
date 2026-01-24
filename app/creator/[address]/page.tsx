@@ -19,7 +19,7 @@ export default function CreatorProjectsPage() {
   const [selectedProject, setSelectedProject] = useState<any | null>(null);
 
   const validProjects = projects.filter(
-    (p): p is NonNullable<typeof p> => p !== null
+    (p): p is NonNullable<typeof p> => p !== null,
   );
 
   const formatEth = (amount: bigint | string) =>
@@ -28,13 +28,13 @@ export default function CreatorProjectsPage() {
       .replace(/\.?0+$/, "");
 
   const total = validProjects.filter((p) =>
-    [11, 4, 7, 10].includes(p.state)
+    [11, 4, 7, 10].includes(p.state),
   ).length;
 
   const successCount = validProjects.filter((p) => p.state === 11).length;
 
   const failedCount = validProjects.filter((p) =>
-    [4, 7, 10].includes(p.state)
+    [4, 7, 10].includes(p.state),
   ).length;
 
   const successRate = total > 0 ? (successCount / total) * 100 : 0;
@@ -87,7 +87,10 @@ export default function CreatorProjectsPage() {
 
         {/* Table */}
         {isLoading ? (
-          <div className="text-gray-400">Loading…</div>
+          <div className="flex flex-col items-center justify-center py-20 space-y-4">
+            <div className="w-8 h-8 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+            <p className="text-gray-500 font-medium">Loading...</p>
+          </div>
         ) : validProjects.length === 0 ? (
           <div className="text-gray-400">No projects found</div>
         ) : (
@@ -134,7 +137,7 @@ export default function CreatorProjectsPage() {
                         <td className="px-5 py-4">
                           {(() => {
                             const { percent, color } = getProjectProgress(
-                              p.state
+                              p.state,
                             );
                             return (
                               <div className="flex flex-col gap-2">
