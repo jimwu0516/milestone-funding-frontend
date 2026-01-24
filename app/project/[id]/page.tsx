@@ -1,3 +1,4 @@
+//app/project[id]/page.tsx
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
@@ -115,11 +116,9 @@ export default function ProjectDetailPage() {
     fetchEmail();
   }, [address, projectId]);
 
-  // ─── Safe current index & state
   const currentIndex = projectCore ? Number(projectCore[7]) : 0;
   const currentState = states[currentIndex];
 
-  // ─── Effect for building modal
   useEffect(() => {
     if (!projectCore) return;
 
@@ -133,7 +132,6 @@ export default function ProjectDetailPage() {
     setPrevState(stateNow);
   }, [projectCore, prevState]);
 
-  // ─── Early return if invalid projectId
   if (!projectId) return <div>Invalid ProjectID</div>;
   if (!projectCore) return <div>Loading...</div>;
 
@@ -419,25 +417,44 @@ export default function ProjectDetailPage() {
                 {investments && investments[0]?.length > 0 ? (
                   investments[0].map((investor, index) => {
                     const isLast = index === investments[0].length - 1;
+                    const amount = investments[1][index];
+                    const percentage =
+                      totalFunded > BigInt(0)
+                        ? Number((amount * BigInt(100)) / totalFunded)
+                        : 0;
+
                     return (
                       <tr
                         key={investor}
-                        className="hover:bg-gray-700 transition"
+                        className="hover:bg-gray-800/50 hover:shadow-[0_0_15px_rgba(0,255,255,0.3)] transition cursor-pointer"
                       >
                         <td
-                          className={`px-4 py-3 text-sm font-mono break-all text-blue-400 cursor-pointer hover:underline ${
+                          className={`px-4 py-3 text-sm font-mono text-blue-400 cursor-pointer hover:underline ${
                             isLast ? "rounded-bl-xl" : ""
                           }`}
                           onClick={() => router.push(`/investor/${investor}`)}
                         >
-                          {investor}
+                          <span className="block max-w-[150px] sm:max-w-[200px] md:max-w-[250px] lg:max-w-full truncate">
+                            {investor}
+                          </span>
                         </td>
+
                         <td
                           className={`px-4 py-3 text-sm font-semibold text-white ${
                             isLast ? "rounded-br-xl" : ""
                           }`}
                         >
-                          {formatEth(investments[1][index])} ETH
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1 h-3 bg-gray-800 rounded-full overflow-hidden">
+                              <div
+                                className="h-3 bg-blue-500 rounded-l-full transition-all"
+                                style={{ width: `${percentage}%` }}
+                              />
+                            </div>
+                            <span className="text-xs font-mono text-blue-500 whitespace-nowrap">
+                              {formatEth(amount)} ETH
+                            </span>
+                          </div>
                         </td>
                       </tr>
                     );
