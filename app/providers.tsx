@@ -28,8 +28,8 @@ const { connectors } = getDefaultWallets({
 });
 
 const transports: Record<number, Transport> = {
-  [mainnet.id]: http(),
-  [sepolia.id]: http(process.env.NEXT_PUBLIC_RPC_URL),
+  [mainnet.id]: http(process.env.NEXT_PUBLIC_RPC_URL),
+  [sepolia.id]: http(),
 };
 
 const wagmiConfig = createConfig({
