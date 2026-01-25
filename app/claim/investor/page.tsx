@@ -95,7 +95,7 @@ export default function ClaimInvestorPage() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900">
       <Navbar />
 
-      <main className="flex items-center justify-center px-4 py-28">
+      <main className="flex items-center justify-center px-4 py-70">
         <div className="w-full max-w-md rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xl p-8 text-center">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             Investor Claim
